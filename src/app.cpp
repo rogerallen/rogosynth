@@ -71,7 +71,7 @@ void App::cleanup()
     SDL_DestroyWindow(mSDLWindow);
 }
 
-// initialize SMFL, OpenGL, CUDA & Mandelbrot classes
+// initialize Window, AppGL classes
 // return true on error
 bool App::init()
 {
@@ -106,7 +106,7 @@ bool App::initWindow()
 
     // Create main window
     mSDLWindow = SDL_CreateWindow(
-        "SMandelbrotr",
+        "rogosynth",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
         startDim, startDim,
@@ -266,12 +266,6 @@ void App::loop()
             ImGui::NewFrame();
             if(mShowGUI) {
                 ImGui::Begin("Information", NULL, ImGuiWindowFlags_AlwaysAutoResize);
-                /*
-                ImGui::Text("Center     : %18.15f, %18.15f",mAppMandelbrot->centerX(), mAppMandelbrot->centerY());
-                ImGui::Text("Zoom       : %10.8f",mAppMandelbrot->zoom());
-                ImGui::Text("DoublePrec : %s", mAppMandelbrot->doublePrecision() ? "True" : "False");
-                ImGui::Text("Iterations : %d", mAppMandelbrot->iterMult());
-                */
                 ImGui::Text("Framerate  : %.1f ms or %.1f Hz", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
                 ImGui::End();
             }

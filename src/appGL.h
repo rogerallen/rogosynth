@@ -1,5 +1,5 @@
-#ifndef SMANDELBROTR_APP_GL_H
-#define SMANDELBROTR_APP_GL_H
+#ifndef ROGOSYNTH_APP_GL_H
+#define ROGOSYNTH_APP_GL_H
 
 #include "appWindow.h"
 

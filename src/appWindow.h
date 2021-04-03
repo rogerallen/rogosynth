@@ -1,5 +1,5 @@
-#ifndef SMANDELBROTR_APP_WINDOW_H
-#define SMANDELBROTR_APP_WINDOW_H
+#ifndef ROGOSYNTH_APP_WINDOW_H
+#define ROGOSYNTH_APP_WINDOW_H
 
 #include <iostream>
 

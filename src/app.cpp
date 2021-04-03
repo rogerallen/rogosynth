@@ -15,6 +15,9 @@
 #include <windows.h>
 #endif
 
+static void audio_callback(void *unused, Uint8 *byte_stream, int byte_stream_length) {
+}
+
 App::App()
 {
     mAppWindow = nullptr;
@@ -79,6 +82,9 @@ bool App::init()
         return true;
     }
     mAppGL = new AppGL(mAppWindow, mMonitorWidth, mMonitorHeight);
+    if (initAudio()) {
+        return true;
+    }
     return false;
 }
 
@@ -176,6 +182,64 @@ bool App::initWindow()
 #endif
 
     return false;
+}
+
+#define SAMPLE_RATE 44100
+#define BUFFER_SIZE 4096   // must be power of two
+
+// initialize SDL2 audio
+// return true on error
+bool App::initAudio()
+{
+    SDL_Init(SDL_INIT_AUDIO | SDL_INIT_TIMER);
+    SDL_AudioSpec want;
+    SDL_zero(want);
+    SDL_zero(mAudioSpec);
+
+    // desired audio spec
+    want.freq = SAMPLE_RATE;
+    want.format = AUDIO_S16LSB;
+    want.channels = 2;
+    want.samples = BUFFER_SIZE;
+    want.callback = audio_callback;
+
+    mAudioDevice = SDL_OpenAudioDevice(NULL, 0, &want, &mAudioSpec, 0);
+
+    if (mAudioDevice == 0) {
+        std::cerr << "ERROR: Failed to open audio: " << SDL_GetError() << std::endl;
+        return true;
+    }
+
+    if (mAudioSpec.freq != want.freq) {
+        std::cerr << "ERROR: Couldn't get requested audio freq." << std::endl;
+        return true;
+    }
+    if (mAudioSpec.format != want.format) {
+        std::cerr << "ERROR: Couldn't get requested audio format." << std::endl;
+        return true;
+    }
+    if (mAudioSpec.channels != want.channels) {
+        std::cerr << "ERROR: Couldn't get requested audio channels." << std::endl;
+        return true;
+    }
+    if (mAudioSpec.samples != want.samples) {
+        std::cerr << "ERROR: Couldn't get requested audio samples." << std::endl;
+        return true;
+    }
+
+#ifndef NDEBUG
+    std::cout << "audioSpec:\n";
+    std::cout << "     freq: " << mAudioSpec.freq << "\n";
+    std::cout << "   format: AUDIO_S16LSB\n";
+    std::cout << " channels: " << mAudioSpec.channels << "\n";
+    std::cout << "  samples: " << mAudioSpec.samples << "\n";
+    std::cout << "     size: " << mAudioSpec.size << "\n";
+#endif
+    
+    SDL_PauseAudioDevice(mAudioDevice, 0); // unpause audio.
+    
+    return false;
+
 }
 
 void App::loop()

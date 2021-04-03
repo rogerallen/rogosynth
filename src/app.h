@@ -13,6 +13,7 @@ class App {
 
     bool init();
     bool initWindow();
+    bool initAudio();
     void loop();
     void update();
     void cleanup();
@@ -22,6 +23,10 @@ class App {
     AppGL *mAppGL;
     SDL_Window *mSDLWindow;
     SDL_GLContext mSDLGLContext;
+
+    SDL_AudioSpec mAudioSpec;
+    SDL_AudioDeviceID mAudioDevice;
+
     bool mSwitchFullscreen;
     bool mIsFullscreen;
     int mMonitorWidth, mMonitorHeight;

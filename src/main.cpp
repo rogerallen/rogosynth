@@ -19,11 +19,12 @@ int main(int argc, char *argv[])
                 usage();
                 return 0;
             }
-            //else if (argv[i][1] == 'd') {
+            // else if (argv[i][1] == 'd') {
             //    cudaDevice = std::stoi(argv[++i]);
             //}
             else {
-                std::cerr << "ERROR: unknown option -" << argv[i][1] << std::endl;
+                std::cerr << "ERROR: unknown option -" << argv[i][1]
+                          << std::endl;
                 usage();
                 return 1;
             }

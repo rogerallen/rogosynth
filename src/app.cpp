@@ -1,8 +1,8 @@
 #include "app.h"
 
-#include "imgui.h"
-#include "examples/imgui_impl_sdl.h"
 #include "examples/imgui_impl_opengl3.h"
+#include "examples/imgui_impl_sdl.h"
+#include "imgui.h"
 
 #ifdef WIN32
 // don't interfere with std::min,max
@@ -15,7 +15,9 @@
 #include <windows.h>
 #endif
 
-static void audio_callback(void *unused, Uint8 *byte_stream, int byte_stream_length) {
+static void audio_callback(void *unused, Uint8 *byte_stream,
+                           int byte_stream_length)
+{
 }
 
 App::App()
@@ -35,8 +37,8 @@ App::App()
 
     mMonitorWidth = mMonitorHeight = -1;
 
-    mMouseStartX = mMouseStartY =
-        mMouseX = mMouseY = mCenterStartX = mCenterStartY = -1;
+    mMouseStartX = mMouseStartY = mMouseX = mMouseY = mCenterStartX =
+        mCenterStartY = -1;
 }
 
 void App::run()
@@ -49,8 +51,10 @@ void App::run()
 
     SDL_VERSION(&compiled);
     SDL_GetVersion(&linked);
-    std::cout << "SDL compiled version | " << int(compiled.major) << "." << int(compiled.minor) << "." << int(compiled.patch) << std::endl;
-    std::cout << "SDL linked version   | " << int(linked.major) << "." << int(linked.minor) << "." << int(linked.patch) << std::endl;
+    std::cout << "SDL compiled version | " << int(compiled.major) << "."
+              << int(compiled.minor) << "." << int(compiled.patch) << std::endl;
+    std::cout << "SDL linked version   | " << int(linked.major) << "."
+              << int(linked.minor) << "." << int(linked.patch) << std::endl;
 
     std::cout << "GLM version          | " << GLM_VERSION << std::endl;
 #endif
@@ -111,12 +115,10 @@ bool App::initWindow()
     mAppWindow = new AppWindow(startDim, startDim);
 
     // Create main window
-    mSDLWindow = SDL_CreateWindow(
-        "rogosynth",
-        SDL_WINDOWPOS_CENTERED,
-        SDL_WINDOWPOS_CENTERED,
-        startDim, startDim,
-        SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+    mSDLWindow = SDL_CreateWindow("rogosynth", SDL_WINDOWPOS_CENTERED,
+                                  SDL_WINDOWPOS_CENTERED, startDim, startDim,
+                                  SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE |
+                                      SDL_WINDOW_ALLOW_HIGHDPI);
     if (mSDLWindow == NULL) {
         std::cerr << "Failed to create main window" << std::endl;
         SDL_Quit();
@@ -126,9 +128,8 @@ bool App::initWindow()
     // Initialize rendering context
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-    SDL_GL_SetAttribute(
-        SDL_GL_CONTEXT_PROFILE_MASK,
-        SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
+                        SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
@@ -169,15 +170,16 @@ bool App::initWindow()
     ImGui_ImplOpenGL3_Init("#version 330");
 
     // colors are set in RGBA, but as float
-    //ImVec4 background = ImVec4(35/255.0f, 35/255.0f, 35/255.0f, 1.00f);
-
+    // ImVec4 background = ImVec4(35/255.0f, 35/255.0f, 35/255.0f, 1.00f);
 
 #ifndef NDEBUG
     int major, minor;
     SDL_GL_GetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, &major);
     SDL_GL_GetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, &minor);
-    std::cout << "OpenGL version       | " << major << "." << minor << std::endl;
-    std::cout << "GLEW version         | " << glewGetString(GLEW_VERSION) << std::endl;
+    std::cout << "OpenGL version       | " << major << "." << minor
+              << std::endl;
+    std::cout << "GLEW version         | " << glewGetString(GLEW_VERSION)
+              << std::endl;
     std::cout << "---------------------+-------" << std::endl;
 #endif
 
@@ -185,7 +187,7 @@ bool App::initWindow()
 }
 
 #define SAMPLE_RATE 44100
-#define BUFFER_SIZE 4096   // must be power of two
+#define BUFFER_SIZE 4096 // must be power of two
 
 // initialize SDL2 audio
 // return true on error
@@ -206,7 +208,8 @@ bool App::initAudio()
     mAudioDevice = SDL_OpenAudioDevice(NULL, 0, &want, &mAudioSpec, 0);
 
     if (mAudioDevice == 0) {
-        std::cerr << "ERROR: Failed to open audio: " << SDL_GetError() << std::endl;
+        std::cerr << "ERROR: Failed to open audio: " << SDL_GetError()
+                  << std::endl;
         return true;
     }
 
@@ -219,11 +222,13 @@ bool App::initAudio()
         return true;
     }
     if (mAudioSpec.channels != want.channels) {
-        std::cerr << "ERROR: Couldn't get requested audio channels." << std::endl;
+        std::cerr << "ERROR: Couldn't get requested audio channels."
+                  << std::endl;
         return true;
     }
     if (mAudioSpec.samples != want.samples) {
-        std::cerr << "ERROR: Couldn't get requested audio samples." << std::endl;
+        std::cerr << "ERROR: Couldn't get requested audio samples."
+                  << std::endl;
         return true;
     }
 
@@ -235,11 +240,10 @@ bool App::initAudio()
     std::cout << "  samples: " << mAudioSpec.samples << "\n";
     std::cout << "     size: " << mAudioSpec.size << "\n";
 #endif
-    
-    SDL_PauseAudioDevice(mAudioDevice, 0); // unpause audio.
-    
-    return false;
 
+    SDL_PauseAudioDevice(mAudioDevice, 0); // unpause audio.
+
+    return false;
 }
 
 void App::loop()
@@ -257,12 +261,13 @@ void App::loop()
         while (SDL_PollEvent(&event)) {
 
             ImGui_ImplSDL2_ProcessEvent(&event);
-            ImGuiIO& io = ImGui::GetIO();
+            ImGuiIO &io = ImGui::GetIO();
             if (io.WantCaptureKeyboard || io.WantCaptureMouse) {
                 break;
             }
 
-            if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE) {
+            if (event.type == SDL_WINDOWEVENT &&
+                event.window.event == SDL_WINDOWEVENT_CLOSE) {
                 running = false;
                 break;
             }
@@ -328,9 +333,12 @@ void App::loop()
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplSDL2_NewFrame(mSDLWindow);
             ImGui::NewFrame();
-            if(mShowGUI) {
-                ImGui::Begin("Information", NULL, ImGuiWindowFlags_AlwaysAutoResize);
-                ImGui::Text("Framerate  : %.1f ms or %.1f Hz", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+            if (mShowGUI) {
+                ImGui::Begin("Information", NULL,
+                             ImGuiWindowFlags_AlwaysAutoResize);
+                ImGui::Text("Framerate  : %.1f ms or %.1f Hz",
+                            1000.0f / ImGui::GetIO().Framerate,
+                            ImGui::GetIO().Framerate);
                 ImGui::End();
             }
             ImGui::Render();
@@ -370,10 +378,10 @@ void App::update()
             mPrevWindowHeight = mAppWindow->height();
             SDL_GetWindowPosition(mSDLWindow, &mPrevWindowX, &mPrevWindowY);
             SDL_SetWindowSize(mSDLWindow, mMonitorWidth, mMonitorHeight);
-            SDL_SetWindowFullscreen(mSDLWindow, SDL_WINDOW_FULLSCREEN_DESKTOP); // "fake" fullscreen
+            SDL_SetWindowFullscreen(
+                mSDLWindow, SDL_WINDOW_FULLSCREEN_DESKTOP); // "fake" fullscreen
         }
     }
-
 }
 
 void App::resize(unsigned width, unsigned height)

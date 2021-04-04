@@ -8,7 +8,8 @@ class AppWindow {
     bool mResized;
 
   public:
-    AppWindow(unsigned int width, unsigned int height) : mWidth{width}, mHeight{height}
+    AppWindow(unsigned int width, unsigned int height)
+        : mWidth{width}, mHeight{height}
     {
         mResized = true;
     }

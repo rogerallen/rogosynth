@@ -15,9 +15,11 @@
 #include <windows.h>
 #endif
 
-static void audio_callback(void *unused, Uint8 *byte_stream,
-                           int byte_stream_length)
+static void staticAudioCallback(void *userdata, Uint8 *byte_stream,
+                                int byte_stream_length)
 {
+    static_cast<App *>(userdata)->audioCallback(byte_stream,
+                                                byte_stream_length);
 }
 
 App::App()
@@ -26,6 +28,8 @@ App::App()
     mAppGL = nullptr;
     mSDLWindow = nullptr;
     mSDLGLContext = nullptr;
+
+    mSynth = nullptr;
 
     mSwitchFullscreen = false;
     mIsFullscreen = false;
@@ -71,6 +75,8 @@ void App::cleanup()
     std::cout << "Exiting..." << std::endl;
 #endif
 
+    SDL_CloseAudioDevice(mAudioDevice);
+
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
@@ -89,6 +95,7 @@ bool App::init()
     if (initAudio()) {
         return true;
     }
+    mSynth = new Synth(mAudioDevice, mAudioSpec);
     return false;
 }
 
@@ -203,7 +210,8 @@ bool App::initAudio()
     want.format = AUDIO_S16LSB;
     want.channels = 2;
     want.samples = BUFFER_SIZE;
-    want.callback = audio_callback;
+    want.userdata = this;
+    want.callback = staticAudioCallback;
 
     mAudioDevice = SDL_OpenAudioDevice(NULL, 0, &want, &mAudioSpec, 0);
 
@@ -236,7 +244,7 @@ bool App::initAudio()
     std::cout << "audioSpec:\n";
     std::cout << "     freq: " << mAudioSpec.freq << "\n";
     std::cout << "   format: AUDIO_S16LSB\n";
-    std::cout << " channels: " << mAudioSpec.channels << "\n";
+    std::cout << " channels: " << (int)mAudioSpec.channels << "\n";
     std::cout << "  samples: " << mAudioSpec.samples << "\n";
     std::cout << "     size: " << mAudioSpec.size << "\n";
 #endif
@@ -272,6 +280,7 @@ void App::loop()
                 break;
             }
             else if (event.type == SDL_KEYDOWN) {
+                int new_note = -1;
                 switch (event.key.keysym.sym) {
                 case SDLK_ESCAPE:
                     running = false;
@@ -279,7 +288,7 @@ void App::loop()
                 case SDLK_TAB:
                     mShowGUI = !mShowGUI;
                     break;
-                case SDLK_f:
+                case SDLK_F1: // F1 == FULLSCREEN
                     // getting double f events when we switch to fullscreen
                     // only on desktop linux!  So, let's slow this down to
                     // "debounce" those switches
@@ -288,16 +297,147 @@ void App::loop()
                         lastFrameEventTime = curTime;
                     }
                     break;
+
+                case SDLK_z:
+                    new_note = 12;
+                    break;
+                case SDLK_s:
+                    new_note = 13;
+                    break;
+                case SDLK_x:
+                    new_note = 14;
+                    break;
+                case SDLK_d:
+                    new_note = 15;
+                    break;
+                case SDLK_c:
+                    new_note = 16;
+                    break;
+                case SDLK_v:
+                    new_note = 17;
+                    break;
+                case SDLK_g:
+                    new_note = 18;
+                    break;
+                case SDLK_b:
+                    new_note = 19;
+                    break;
+                case SDLK_h:
+                    new_note = 20;
+                    break;
+                case SDLK_n:
+                    new_note = 21;
+                    break;
+                case SDLK_j:
+                    new_note = 22;
+                    break;
+                case SDLK_m:
+                    new_note = 23;
+                    break;
+                case SDLK_COMMA:
+                    new_note = 24;
+                    break;
+                case SDLK_l:
+                    new_note = 25;
+                    break;
+                case SDLK_PERIOD:
+                    new_note = 26;
+                    break;
+
+                    // upper keyboard
+                case SDLK_q:
+                    new_note = 24;
+                    break;
+                case SDLK_2:
+                    new_note = 25;
+                    break;
+                case SDLK_w:
+                    new_note = 26;
+                    break;
+                case SDLK_3:
+                    new_note = 27;
+                    break;
+                case SDLK_e:
+                    new_note = 28;
+                    break;
+                case SDLK_r:
+                    new_note = 29;
+                    break;
+                case SDLK_5:
+                    new_note = 30;
+                    break;
+                case SDLK_t:
+                    new_note = 31;
+                    break;
+                case SDLK_6:
+                    new_note = 32;
+                    break;
+                case SDLK_y:
+                    new_note = 33;
+                    break;
+                case SDLK_7:
+                    new_note = 34;
+                    break;
+                case SDLK_u:
+                    new_note = 35;
+                    break;
+                case SDLK_i:
+                    new_note = 36;
+                    break;
+                case SDLK_9:
+                    new_note = 37;
+                    break;
+                case SDLK_o:
+                    new_note = 38;
+                    break;
+                case SDLK_0:
+                    new_note = 39;
+                    break;
+                case SDLK_p:
+                    new_note = 40;
+                    break;
+                }
+                if (new_note > -1) {
+                    mSynth->noteOn(new_note);
                 }
             }
             else if (event.type == SDL_KEYUP) {
-                /*
                 switch (event.key.keysym.sym) {
-                case SDLK_LSHIFT:
-                    mReverseZoomMode = false;
+                case SDLK_z:
+                case SDLK_s:
+                case SDLK_x:
+                case SDLK_d:
+                case SDLK_c:
+                case SDLK_v:
+                case SDLK_g:
+                case SDLK_b:
+                case SDLK_h:
+                case SDLK_n:
+                case SDLK_j:
+                case SDLK_m:
+                case SDLK_COMMA:
+                case SDLK_l:
+                case SDLK_PERIOD:
+                case SDLK_q:
+                case SDLK_2:
+                case SDLK_w:
+                case SDLK_3:
+                case SDLK_e:
+                case SDLK_r:
+                case SDLK_5:
+                case SDLK_t:
+                case SDLK_6:
+                case SDLK_y:
+                case SDLK_7:
+                case SDLK_u:
+                case SDLK_i:
+                case SDLK_9:
+                case SDLK_o:
+                case SDLK_0:
+                case SDLK_p:
+                    mSynth->noteOff();
                     break;
                 }
-                */
             }
             else if (event.type == SDL_WINDOWEVENT) {
                 if ((event.window.event == SDL_WINDOWEVENT_RESIZED) ||
@@ -390,5 +530,31 @@ void App::resize(unsigned width, unsigned height)
         (mAppWindow->width() != width || mAppWindow->height() != height)) {
         mAppWindow->width(width);
         mAppWindow->height(height);
+    }
+}
+
+void App::audioCallback(Uint8 *byte_stream, int byte_stream_length)
+{
+    // zero the buffer
+    memset(byte_stream, 0, byte_stream_length);
+
+    /* FIXME ???
+    if(quit) {
+        return;
+    } */
+
+    // cast buffer as 16bit signed int.
+    Sint16 *s_byte_stream = (Sint16 *)byte_stream;
+
+    // buffer is interleaved, so get the length of 1 channel.
+    int remain = byte_stream_length / 2;
+
+    // split the rendering up in chunks to make it buffersize agnostic.
+    long chunk_size = 64;
+    int iterations = remain / chunk_size;
+    for (long i = 0; i < iterations; i++) {
+        long begin = i * chunk_size;
+        long end = (i * chunk_size) + chunk_size;
+        mSynth->writeSamples(s_byte_stream, begin, end, chunk_size);
     }
 }

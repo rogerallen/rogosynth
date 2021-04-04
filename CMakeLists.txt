@@ -21,7 +21,7 @@ project(rogosynth
 set(IMGUI_SOURCES ${IMGUI_ROOT}/imgui.cpp ${IMGUI_ROOT}/imgui_draw.cpp ${IMGUI_ROOT}/imgui_widgets.cpp)
 set(IMGUI_IMPL_SOURCES ${IMGUI_ROOT}/examples/imgui_impl_sdl.cpp ${IMGUI_ROOT}/examples/imgui_impl_opengl3.cpp)
 
-add_executable(rogosynth src/main.cpp src/app.cpp src/appGL.cpp
+add_executable(rogosynth src/main.cpp src/app.cpp src/appGL.cpp src/synth.cpp
     ${IMGUI_SOURCES} ${IMGUI_IMPL_SOURCES})
 
 target_include_directories(rogosynth PUBLIC "${IMGUI_ROOT}")

@@ -3,6 +3,7 @@
 
 #include "appGL.h"
 #include "appWindow.h"
+#include "synth.h"
 #include <GL/glew.h>
 #include <SDL.h>
 #include <algorithm>
@@ -27,6 +28,8 @@ class App {
     SDL_AudioSpec mAudioSpec;
     SDL_AudioDeviceID mAudioDevice;
 
+    Synth *mSynth;
+
     bool mSwitchFullscreen;
     bool mIsFullscreen;
     int mMonitorWidth, mMonitorHeight;
@@ -41,5 +44,6 @@ class App {
   public:
     App();
     void run();
+    void audioCallback(Uint8 *byte_stream, int byte_stream_length);
 };
 #endif

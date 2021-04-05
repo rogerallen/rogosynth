@@ -397,7 +397,7 @@ void App::loop()
                     new_note = 40;
                     break;
                 }
-                if (new_note > -1) {
+                if ((new_note > -1) && (event.key.repeat == 0)) {
                     mSynth->noteOn(new_note);
                 }
             }
@@ -538,10 +538,7 @@ void App::audioCallback(Uint8 *byte_stream, int byte_stream_length)
     // zero the buffer
     memset(byte_stream, 0, byte_stream_length);
 
-    /* FIXME ???
-    if(quit) {
-        return;
-    } */
+    if(mSynth == nullptr) return;
 
     // cast buffer as 16bit signed int.
     Sint16 *s_byte_stream = (Sint16 *)byte_stream;

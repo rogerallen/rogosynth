@@ -21,6 +21,7 @@ Synth::Synth(SDL_AudioDeviceID &audioDevice, SDL_AudioSpec &audioSpec)
 
     mNote = -1; // negative when off
     mOctave = 2;
+    mKeyPressed = false;
 
     mPhase = 0;
     mCurrentAmp = 0;
@@ -48,6 +49,7 @@ void Synth::noteOn(int note)
 {
     int curNote = mNote;
 
+    mKeyPressed = true;
     mNote = note;
     mNote += (mOctave * 12);
     if (note < MIN_NOTE) {
@@ -56,18 +58,17 @@ void Synth::noteOn(int note)
     else if (note > MAX_NOTE) {
         mNote = MAX_NOTE;
     }
-    if (mNote != curNote) {
+    //if (mNote != curNote) {
 #ifndef NDEBUG
-        std::cout << "noteOn " << mNote << "\n";
+    std::cout << "noteOn " << mNote << "\n";
 #endif
-        mEnvelopeCursor = 0; // new note restarts envelope
-    }
+    mEnvelopeCursor = 0; // new note restarts envelope
+    //}
 }
 
 void Synth::noteOff()
 {
-    mNote = -1;
-    mEnvelopeCursor = 0;
+    mKeyPressed = false;
 #ifndef NDEBUG
     std::cout << "noteOff\n";
 #endif
@@ -136,9 +137,8 @@ double Synth::getPitch(double note)
 // advance envelope cursor and return the target amplitude value.
 double Synth::updateEnvelope(void)
 {
-    bool key_pressed = mNote >= MIN_NOTE;
     double amp = 0;
-    if (key_pressed && mEnvelopeCursor < 3 && mEnvelopeCursor > 2) {
+    if (mKeyPressed && mEnvelopeCursor < 3 && mEnvelopeCursor > 2) {
         // if a note key is longpressed and cursor is in range, stay for
         // sustain.
         amp = getEnvelopeAmpByNode(2, mEnvelopeCursor);
@@ -163,11 +163,9 @@ double Synth::updateEnvelope(void)
     return amp;
 }
 
+// interpolate amp value for the current cursor position.
 double Synth::getEnvelopeAmpByNode(int base_node, double cursor)
 {
-
-    // interpolate amp value for the current cursor position.
-
     double n1 = base_node;
     double n2 = base_node + 1;
     double relative_cursor_pos = (cursor - n1) / (n2 - n1);

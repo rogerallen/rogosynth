@@ -20,6 +20,7 @@ class Synth {
 
     int mNote;
     int mOctave;
+    bool mKeyPressed;
 
     double mPhase;
     double mCurrentAmp;

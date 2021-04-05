@@ -27,7 +27,7 @@ class Synth {
     double mSmoothingAmpSpeed;
 
     void buildSineWaveTable();
-    const double CHROMATIC_RATIO = 1.059463094359295264562;
+    const double CHROMATIC_RATIO = pow(2.0, 1.0/12.0); // 1.059463094359295264562;
     double getPitch(double note);
     double updateEnvelope();
     double getEnvelopeAmpByNode(int base_node, double cursor);

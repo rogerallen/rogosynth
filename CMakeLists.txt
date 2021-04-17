@@ -51,8 +51,8 @@ endif()
 
 # GL Extension Wrangler (GLEW) get dev libraries from http://glew.sourceforge.net/
 find_package(GLEW REQUIRED)
-target_link_libraries(rogosynth "${GLEW_LIBRARIES}")
-target_include_directories(rogosynth PUBLIC "${GLEW_INCLUDE_DIRS}")
+target_link_libraries(rogosynth ${GLEW_LIBRARIES})
+target_include_directories(rogosynth PUBLIC ${GLEW_INCLUDE_DIRS})
 
 # Windows: copy the dll as a post-build step
 if(WIN32)
@@ -60,8 +60,9 @@ if(WIN32)
          COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${SDL2_DIR}/lib/x64/SDL2.dll"
             $<TARGET_FILE_DIR:rogosynth>)
-    add_custom_command(TARGET rogosynth POST_BUILD
-         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${GLEW_DLL_DIR}/glew32.dll"
-            $<TARGET_FILE_DIR:rogosynth>)
+# seems to have started working with VS 2019
+#    add_custom_command(TARGET rogosynth POST_BUILD
+#         COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#            "${GLEW_DLL_DIR}/glew32.dll"
+#            $<TARGET_FILE_DIR:rogosynth>)
 endif()

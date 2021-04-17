@@ -36,12 +36,12 @@ Synth::~Synth() { delete[] mSineWaveTable; }
 // the table at different intervals (phase).
 void Synth::buildSineWaveTable()
 {
-    double phase_increment = (2.0f * M_PI) / (double)TABLE_LENGTH;
+    double phase_inc = (2.0f * M_PI) / (double)TABLE_LENGTH;
     double current_phase = 0;
     for (int i = 0; i < TABLE_LENGTH; i++) {
         int sample = (int)(sin(current_phase) * INT16_MAX);
         mSineWaveTable[i] = (int16_t)sample;
-        current_phase += phase_increment;
+        current_phase += phase_inc;
     }
 }
 
@@ -58,7 +58,7 @@ void Synth::noteOn(int note)
     else if (note > MAX_NOTE) {
         mNote = MAX_NOTE;
     }
-    //if (mNote != curNote) {
+    // if (mNote != curNote) {
 #ifndef NDEBUG
     std::cout << "noteOn " << mNote << "\n";
 #endif
@@ -77,48 +77,43 @@ void Synth::noteOff()
 void Synth::writeSamples(int16_t *s_byteStream, long begin, long end,
                          long length)
 {
-    if (mNote > 0) {
-        double d_sample_rate = mAudioSpec.freq;
-        double d_table_length = TABLE_LENGTH;
-        double d_note = mNote;
+    if (s_byteStream == NULL) {
+        return;
+    }
 
+    if (mNote > 0) {
         // get correct phase increment for note depending on sample rate and
         // table length.
-        double phase_increment =
-            (getPitch(d_note) / d_sample_rate) * d_table_length;
+        double phase_inc = (getPitch(mNote) / mAudioSpec.freq) * TABLE_LENGTH;
 
         // loop through the buffer and write samples.
         for (int i = 0; i < length; i += 2) {
-            mPhase += phase_increment;
-            int phase_int = (int)mPhase;
+            mPhase += phase_inc;
             if (mPhase >= TABLE_LENGTH) {
-                double diff = mPhase - TABLE_LENGTH;
-                mPhase = diff;
-                phase_int = (int)diff;
+                mPhase = mPhase - TABLE_LENGTH;
             }
+            int phase_int = (int)mPhase;
 
             if (phase_int < TABLE_LENGTH && phase_int > -1) {
-                if (s_byteStream != NULL) {
-                    int16_t sample = mSineWaveTable[phase_int];
-                    double target_amp = updateEnvelope();
-                    // move current amp towards target amp for a smoother
-                    // transition.
-                    if (mCurrentAmp < target_amp) {
-                        mCurrentAmp += mSmoothingAmpSpeed;
-                        if (mCurrentAmp > target_amp) {
-                            mCurrentAmp = target_amp;
-                        }
+                int16_t sample = mSineWaveTable[phase_int];
+                double target_amp = updateEnvelope();
+                // move current amp towards target amp for a smoother
+                // transition.
+                if (mCurrentAmp < target_amp) {
+                    mCurrentAmp += mSmoothingAmpSpeed;
+                    if (mCurrentAmp > target_amp) {
+                        mCurrentAmp = target_amp;
                     }
-                    else if (mCurrentAmp > target_amp) {
-                        mCurrentAmp -= mSmoothingAmpSpeed;
-                        if (mCurrentAmp < target_amp) {
-                            mCurrentAmp = target_amp;
-                        }
-                    }
-                    sample *= mCurrentAmp;                // scale volume.
-                    s_byteStream[i + begin] = sample;     // left channel
-                    s_byteStream[i + begin + 1] = sample; // right channel
                 }
+                else if (mCurrentAmp > target_amp) {
+                    mCurrentAmp -= mSmoothingAmpSpeed;
+                    if (mCurrentAmp < target_amp) {
+                        mCurrentAmp = target_amp;
+                    }
+                }
+                sample *= mCurrentAmp;                // scale volume.
+                s_byteStream[i + begin] = sample;     // left channel
+                s_byteStream[i + begin + 1] = sample; // right channel
             }
         }
     }

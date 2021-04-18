@@ -1,6 +1,9 @@
 #ifndef ROGOSYNTH_APP_H
 #define ROGOSYNTH_APP_H
 
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 #include "appGL.h"
 #include "appWindow.h"
 #include "synth.h"

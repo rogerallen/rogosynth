@@ -27,7 +27,7 @@ add_executable(rogosynth src/main.cpp src/app.cpp src/appGL.cpp src/synth.cpp
 target_include_directories(rogosynth PUBLIC "${IMGUI_ROOT}")
 target_include_directories(rogosynth PUBLIC "${IMGUI_ROOT}/examples")
 
-target_compile_features(rogosynth PUBLIC cxx_std_14)
+target_compile_features(rogosynth PUBLIC cxx_std_17)
 
 target_include_directories(rogosynth PUBLIC "${GLM_DIR}")
 

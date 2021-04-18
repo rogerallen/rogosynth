@@ -1,42 +1,38 @@
 #ifndef ROGOSYNTH_SYNTH_H
 #define ROGOSYNTH_SYNTH_H
 
-#include <SDL.h>
+#define _USE_MATH_DEFINES
+#include <cmath>
+#include <cstdint>
+
+#include "envelope.h"
+
+const int SAMPLE_RATE = 44100;
+const double CHROMATIC_BASE = pow(2.0, 1.0/12.0); // 2^(1/12)=1.059463094359295264562;
+const int MIN_NOTE = 12;
+const int MAX_NOTE = 131;
 
 class Synth {
-    SDL_AudioDeviceID mAudioDevice;
-    SDL_AudioSpec mAudioSpec;
-
     const int TABLE_LENGTH = 1024;
     int16_t *mSineWaveTable;
-
-    double mEnvelopeCursor;
-    double mEnvelopeSpeedScale;
-    double mEnvelopeData[4];  // ADSR (fixme)
-    double mEnvelopeIncrementBase;
-
-    const int MIN_NOTE = 12;
-    const int MAX_NOTE = 131;
+    double mCurPhase;
+    double mCurTime;
 
     int mNote;
     int mOctave;
     bool mKeyPressed;
 
-    double mPhase;
-    double mCurrentAmp;
-    double mSmoothingAmpSpeed;
+    Envelope mEnvelope;
 
     void buildSineWaveTable();
-    const double CHROMATIC_RATIO = pow(2.0, 1.0/12.0); // 1.059463094359295264562;
-    double getPitch(double note);
-    double updateEnvelope();
-    double getEnvelopeAmpByNode(int base_node, double cursor);
+    double getFrequency(double note);
+
 
   public:
-    Synth(SDL_AudioDeviceID &audioDevice, SDL_AudioSpec &audioSpec);
+    Synth();
     ~Synth();
     void noteOn(int note);
     void noteOff();
-    void writeSamples(int16_t *s_byteStream, long begin, long end, long length);
+    void writeSamples(int16_t *samples, long length);
 };
 #endif

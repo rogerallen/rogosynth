@@ -15,6 +15,8 @@
 #include <windows.h>
 #endif
 
+// Go from C-style thread call to C++ method.
+// userdata points to the App class.
 static void staticAudioCallback(void *userdata, Uint8 *byte_stream,
                                 int byte_stream_length)
 {
@@ -95,7 +97,7 @@ bool App::init()
     if (initAudio()) {
         return true;
     }
-    mSynth = new Synth(mAudioDevice, mAudioSpec);
+    mSynth = new Synth();
     return false;
 }
 
@@ -193,7 +195,6 @@ bool App::initWindow()
     return false;
 }
 
-#define SAMPLE_RATE 44100
 #define BUFFER_SIZE 4096 // must be power of two
 
 // initialize SDL2 audio
@@ -540,18 +541,6 @@ void App::audioCallback(Uint8 *byte_stream, int byte_stream_length)
 
     if(mSynth == nullptr) return;
 
-    // cast buffer as 16bit signed int.
-    Sint16 *s_byte_stream = (Sint16 *)byte_stream;
-
-    // buffer is interleaved, so get the length of 1 channel.
-    int remain = byte_stream_length / 2;
-
-    // split the rendering up in chunks to make it buffersize agnostic.
-    long chunk_size = 64;
-    int iterations = remain / chunk_size;
-    for (long i = 0; i < iterations; i++) {
-        long begin = i * chunk_size;
-        long end = (i * chunk_size) + chunk_size;
-        mSynth->writeSamples(s_byte_stream, begin, end, chunk_size);
-    }
+    // cast buffer as signed 16bit, adjust length 
+    mSynth->writeSamples((Sint16 *)byte_stream, byte_stream_length/2);
 }

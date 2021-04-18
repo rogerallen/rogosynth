@@ -20,7 +20,7 @@ Got Windows Build working with both:
 - one note at a time, needs polyphony
 - could use stereo pan
 - needs a mixer.  Could use float buffer prior to mixer & have mixer output u16
-- needs better ADSR envelope
+- [DONE] needs better ADSR envelope
 - sine table only, could use square, triangle & sawtooth waves
 - could use LPF after that
 

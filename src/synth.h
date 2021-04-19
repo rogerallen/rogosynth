@@ -31,5 +31,15 @@ class Synth {
     void noteOn(int note);
     void noteOff();
     void writeSamples(int16_t *samples, long length);
+    void attack(double v) { mEnvelope.attack(v); }
+    double attack() { return mEnvelope.attack(); }
+    void decay(double v) { mEnvelope.decay(v); }
+    double decay() { return mEnvelope.decay(); }
+    void sustain(double v) { mEnvelope.sustain(v); }
+    double sustain() { return mEnvelope.sustain(); }
+    void release(double v) { mEnvelope.release(v); }
+    double release() { return mEnvelope.release(); }
+    bool active() { return mEnvelope.active(mCurTime); }
+    bool releasing() { return mEnvelope.releasing(mCurTime); }
 };
 #endif

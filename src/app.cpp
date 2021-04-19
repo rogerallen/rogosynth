@@ -281,7 +281,6 @@ void App::loop()
                 break;
             }
             else if (event.type == SDL_KEYDOWN) {
-                int new_note = -1;
                 switch (event.key.keysym.sym) {
                 case SDLK_ESCAPE:
                     running = false;
@@ -298,146 +297,22 @@ void App::loop()
                         lastFrameEventTime = curTime;
                     }
                     break;
-
-                case SDLK_z:
-                    new_note = 12;
+                default:
+                    int pitch = symToPitch(event.key.keysym.sym);
+                    if ((pitch > -1) && (event.key.repeat == 0)) {
+                        if (!mSynth->active()) {
+                            mSynth->noteOn(pitch);
+                        }
+                    }
                     break;
-                case SDLK_s:
-                    new_note = 13;
-                    break;
-                case SDLK_x:
-                    new_note = 14;
-                    break;
-                case SDLK_d:
-                    new_note = 15;
-                    break;
-                case SDLK_c:
-                    new_note = 16;
-                    break;
-                case SDLK_v:
-                    new_note = 17;
-                    break;
-                case SDLK_g:
-                    new_note = 18;
-                    break;
-                case SDLK_b:
-                    new_note = 19;
-                    break;
-                case SDLK_h:
-                    new_note = 20;
-                    break;
-                case SDLK_n:
-                    new_note = 21;
-                    break;
-                case SDLK_j:
-                    new_note = 22;
-                    break;
-                case SDLK_m:
-                    new_note = 23;
-                    break;
-                case SDLK_COMMA:
-                    new_note = 24;
-                    break;
-                case SDLK_l:
-                    new_note = 25;
-                    break;
-                case SDLK_PERIOD:
-                    new_note = 26;
-                    break;
-
-                    // upper keyboard
-                case SDLK_q:
-                    new_note = 24;
-                    break;
-                case SDLK_2:
-                    new_note = 25;
-                    break;
-                case SDLK_w:
-                    new_note = 26;
-                    break;
-                case SDLK_3:
-                    new_note = 27;
-                    break;
-                case SDLK_e:
-                    new_note = 28;
-                    break;
-                case SDLK_r:
-                    new_note = 29;
-                    break;
-                case SDLK_5:
-                    new_note = 30;
-                    break;
-                case SDLK_t:
-                    new_note = 31;
-                    break;
-                case SDLK_6:
-                    new_note = 32;
-                    break;
-                case SDLK_y:
-                    new_note = 33;
-                    break;
-                case SDLK_7:
-                    new_note = 34;
-                    break;
-                case SDLK_u:
-                    new_note = 35;
-                    break;
-                case SDLK_i:
-                    new_note = 36;
-                    break;
-                case SDLK_9:
-                    new_note = 37;
-                    break;
-                case SDLK_o:
-                    new_note = 38;
-                    break;
-                case SDLK_0:
-                    new_note = 39;
-                    break;
-                case SDLK_p:
-                    new_note = 40;
-                    break;
-                }
-                if ((new_note > -1) && (event.key.repeat == 0)) {
-                    mSynth->noteOn(new_note);
                 }
             }
             else if (event.type == SDL_KEYUP) {
-                switch (event.key.keysym.sym) {
-                case SDLK_z:
-                case SDLK_s:
-                case SDLK_x:
-                case SDLK_d:
-                case SDLK_c:
-                case SDLK_v:
-                case SDLK_g:
-                case SDLK_b:
-                case SDLK_h:
-                case SDLK_n:
-                case SDLK_j:
-                case SDLK_m:
-                case SDLK_COMMA:
-                case SDLK_l:
-                case SDLK_PERIOD:
-                case SDLK_q:
-                case SDLK_2:
-                case SDLK_w:
-                case SDLK_3:
-                case SDLK_e:
-                case SDLK_r:
-                case SDLK_5:
-                case SDLK_t:
-                case SDLK_6:
-                case SDLK_y:
-                case SDLK_7:
-                case SDLK_u:
-                case SDLK_i:
-                case SDLK_9:
-                case SDLK_o:
-                case SDLK_0:
-                case SDLK_p:
-                    mSynth->noteOff();
-                    break;
+                int pitch = symToPitch(event.key.keysym.sym);
+                if(pitch > -1) {
+                    if (!mSynth->releasing()) {
+                        mSynth->noteOff();
+                    }
                 }
             }
             else if (event.type == SDL_WINDOWEVENT) {
@@ -534,13 +409,120 @@ void App::resize(unsigned width, unsigned height)
     }
 }
 
+int App::symToPitch(SDL_Keycode sym)
+{
+    int pitch = -1;
+    switch (sym) {
+    case SDLK_z:
+        pitch = 12;
+        break;
+    case SDLK_s:
+        pitch = 13;
+        break;
+    case SDLK_x:
+        pitch = 14;
+        break;
+    case SDLK_d:
+        pitch = 15;
+        break;
+    case SDLK_c:
+        pitch = 16;
+        break;
+    case SDLK_v:
+        pitch = 17;
+        break;
+    case SDLK_g:
+        pitch = 18;
+        break;
+    case SDLK_b:
+        pitch = 19;
+        break;
+    case SDLK_h:
+        pitch = 20;
+        break;
+    case SDLK_n:
+        pitch = 21;
+        break;
+    case SDLK_j:
+        pitch = 22;
+        break;
+    case SDLK_m:
+        pitch = 23;
+        break;
+    case SDLK_COMMA:
+        pitch = 24;
+        break;
+    case SDLK_l:
+        pitch = 25;
+        break;
+    case SDLK_PERIOD:
+        pitch = 26;
+        break;
+
+        // upper keyboard
+    case SDLK_q:
+        pitch = 24;
+        break;
+    case SDLK_2:
+        pitch = 25;
+        break;
+    case SDLK_w:
+        pitch = 26;
+        break;
+    case SDLK_3:
+        pitch = 27;
+        break;
+    case SDLK_e:
+        pitch = 28;
+        break;
+    case SDLK_r:
+        pitch = 29;
+        break;
+    case SDLK_5:
+        pitch = 30;
+        break;
+    case SDLK_t:
+        pitch = 31;
+        break;
+    case SDLK_6:
+        pitch = 32;
+        break;
+    case SDLK_y:
+        pitch = 33;
+        break;
+    case SDLK_7:
+        pitch = 34;
+        break;
+    case SDLK_u:
+        pitch = 35;
+        break;
+    case SDLK_i:
+        pitch = 36;
+        break;
+    case SDLK_9:
+        pitch = 37;
+        break;
+    case SDLK_o:
+        pitch = 38;
+        break;
+    case SDLK_0:
+        pitch = 39;
+        break;
+    case SDLK_p:
+        pitch = 40;
+        break;
+    }
+
+    return pitch;
+}
+
 void App::audioCallback(Uint8 *byte_stream, int byte_stream_length)
 {
     // zero the buffer
     memset(byte_stream, 0, byte_stream_length);
 
-    if(mSynth == nullptr) return;
+    if (mSynth == nullptr) return;
 
-    // cast buffer as signed 16bit, adjust length 
-    mSynth->writeSamples((Sint16 *)byte_stream, byte_stream_length/2);
+    // cast buffer as signed 16bit, adjust length
+    mSynth->writeSamples((Sint16 *)byte_stream, byte_stream_length / 2);
 }

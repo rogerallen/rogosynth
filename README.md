@@ -17,10 +17,10 @@ Got Windows Build working with both:
    output in "out/build"
 
 ## Issues
-- one note at a time, needs polyphony
-- could use stereo pan
-- needs a mixer.  Could use float buffer prior to mixer & have mixer output u16
 - [DONE] needs better ADSR envelope
+- [IN PROGRESS] one note at a time, needs polyphony
+- [IN PROGRESS] needs a mixer.  Could use float buffer prior to mixer & have mixer output u16
 - sine table only, could use square, triangle & sawtooth waves
-- could use LPF after that
+- could use stereo pan
+- could use resonant LPF after that
 

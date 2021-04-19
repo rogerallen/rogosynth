@@ -30,7 +30,7 @@ class Synth {
     //~Synth();
     void noteOn(int note);
     void noteOff();
-    void writeSamples(int16_t *samples, long length);
+    void addSamples(double *samples, long length);
     void attack(double v) { mEnvelope.attack(v); }
     double attack() { return mEnvelope.attack(); }
     void decay(double v) { mEnvelope.decay(v); }

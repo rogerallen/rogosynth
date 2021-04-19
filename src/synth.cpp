@@ -70,7 +70,7 @@ void Synth::noteOff()
 #endif
 }
 
-void Synth::writeSamples(int16_t *samples, long length)
+void Synth::addSamples(double *samples, long length)
 {
     if (samples == NULL) {
         return;
@@ -99,9 +99,9 @@ void Synth::writeSamples(int16_t *samples, long length)
         int phase_int = (int)mCurPhase;
         int16_t sample = Synth::cSineWaveTable[phase_int];
         double amp = mEnvelope.amplitude(mCurTime);
-        sample = (int16_t)(amp * (double)sample); // scale volume.
-        samples[i] = sample;                      // left channel
-        samples[i + 1] = sample;                  // right channel
+        double dSample = amp * (double)sample/INT16_MAX; // scale volume.
+        samples[i] += dSample;                      // left channel
+        samples[i + 1] += dSample;                  // right channel
     }
 }
 

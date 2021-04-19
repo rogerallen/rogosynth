@@ -13,6 +13,8 @@
 #include <iostream>
 #include <string>
 
+const int NUM_SYNTHS = 10;
+
 class App {
 
     bool init();
@@ -32,7 +34,9 @@ class App {
     SDL_AudioSpec mAudioSpec;
     SDL_AudioDeviceID mAudioDevice;
 
-    Synth *mSynth;
+    Synth *mSynths[NUM_SYNTHS];
+    double *mAudioBuffer;
+    int mAudioBufferSize;
 
     bool mSwitchFullscreen;
     bool mIsFullscreen;
@@ -47,6 +51,7 @@ class App {
 
   public:
     App();
+    ~App();
     void run();
     void audioCallback(Uint8 *byte_stream, int byte_stream_length);
 };

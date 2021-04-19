@@ -31,7 +31,11 @@ App::App()
     mSDLWindow = nullptr;
     mSDLGLContext = nullptr;
 
-    mSynth = nullptr;
+    for(int i = 0; i < NUM_SYNTHS; i++) {
+        mSynths[i] = new Synth();
+    }
+    mAudioBuffer = nullptr;
+    mAudioBufferSize = 0;
 
     mSwitchFullscreen = false;
     mIsFullscreen = false;
@@ -45,6 +49,14 @@ App::App()
 
     mMouseStartX = mMouseStartY = mMouseX = mMouseY = mCenterStartX =
         mCenterStartY = -1;
+}
+
+App::~App() 
+{
+    for(int i = 0; i < NUM_SYNTHS; i++) {
+        delete mSynths[i];
+    }
+    delete [] mAudioBuffer;
 }
 
 void App::run()
@@ -97,7 +109,6 @@ bool App::init()
     if (initAudio()) {
         return true;
     }
-    mSynth = new Synth();
     return false;
 }
 
@@ -300,8 +311,8 @@ void App::loop()
                 default:
                     int pitch = symToPitch(event.key.keysym.sym);
                     if ((pitch > -1) && (event.key.repeat == 0)) {
-                        if (!mSynth->active()) {
-                            mSynth->noteOn(pitch);
+                        if (!mSynths[0]->active()) {
+                            mSynths[0]->noteOn(pitch);
                         }
                     }
                     break;
@@ -310,8 +321,8 @@ void App::loop()
             else if (event.type == SDL_KEYUP) {
                 int pitch = symToPitch(event.key.keysym.sym);
                 if(pitch > -1) {
-                    if (!mSynth->releasing()) {
-                        mSynth->noteOff();
+                    if (!mSynths[0]->releasing()) {
+                        mSynths[0]->noteOff();
                     }
                 }
             }
@@ -516,13 +527,31 @@ int App::symToPitch(SDL_Keycode sym)
     return pitch;
 }
 
-void App::audioCallback(Uint8 *byte_stream, int byte_stream_length)
+void App::audioCallback(Uint8 *byte_stream, int byte_stream_size_in_bytes)
 {
     // zero the buffer
-    memset(byte_stream, 0, byte_stream_length);
+    memset(byte_stream, 0, byte_stream_size_in_bytes);
 
-    if (mSynth == nullptr) return;
+    // if necessary, create the mAudioBuffer
+    int sizeInSamples = byte_stream_size_in_bytes / 2;
+    if(mAudioBufferSize < sizeInSamples) {
+#ifndef NDEBUG
+        std::cout << "Create audio blend buffer of " << sizeInSamples << " samples\n";
+#endif
+        mAudioBufferSize = sizeInSamples;
+        if(mAudioBuffer != nullptr) {
+            delete [] mAudioBuffer;
+        }
+        mAudioBuffer = new double[sizeInSamples];
+    }
+    memset(mAudioBuffer, 0, sizeof(double)*sizeInSamples);
 
-    // cast buffer as signed 16bit, adjust length
-    mSynth->writeSamples((Sint16 *)byte_stream, byte_stream_length / 2);
+    if (mSynths[0]->active()) {
+        mSynths[0]->addSamples(mAudioBuffer, sizeInSamples);
+    }
+    // cast buffer as signed 16bit
+    Sint16 *short_stream = (Sint16 *)byte_stream;
+    for(int i = 0; i < sizeInSamples; i++) {
+        short_stream[i] = (Sint16)(mAudioBuffer[i]*INT16_MAX);
+    }
 }

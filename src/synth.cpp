@@ -2,10 +2,39 @@
 #include <algorithm>
 #include <iostream>
 
+static double getFrequency(double note)
+{
+    // Calculate pitch from note value.
+    // offset note by 57 halfnotes to get correct pitch from the range we have
+    // chosen for the notes.
+    double p = pow(CHROMATIC_BASE, note - 57);
+    p *= 440;
+    return p;
+}
+
+static int16_t *generateSineWaveTable()
+{
+    int16_t *sineWaveTable = new int16_t[TABLE_LENGTH];
+
+    // Generate a 16bit signed integer sinewave table with 1024 samples.
+    // This table will be used to produce the notes.
+    // Different notes will be created by stepping through
+    // the table at different intervals (phase).
+    double phaseInc = (2.0 * M_PI) / (double)TABLE_LENGTH;
+    double phase = 0;
+    for (int i = 0; i < TABLE_LENGTH; i++) {
+        int sample = (int)(sin(phase) * INT16_MAX);
+        sineWaveTable[i] = (int16_t)sample;
+        phase += phaseInc;
+    }
+
+    return sineWaveTable;
+}
+
+int16_t *Synth::cSineWaveTable = generateSineWaveTable();
+
 Synth::Synth()
 {
-    mSineWaveTable = new int16_t[TABLE_LENGTH];
-    buildSineWaveTable();
 
     mEnvelope.attack(0.2);
     mEnvelope.decay(0.2);
@@ -20,22 +49,7 @@ Synth::Synth()
     mCurTime = 0.0;
 }
 
-Synth::~Synth() { delete[] mSineWaveTable; }
-
-// Generate a 16bit signed integer sinewave table with 1024 samples.
-// This table will be used to produce the notes.
-// Different notes will be created by stepping through
-// the table at different intervals (phase).
-void Synth::buildSineWaveTable()
-{
-    double phaseInc = (2.0 * M_PI) / (double)TABLE_LENGTH;
-    double phase = 0;
-    for (int i = 0; i < TABLE_LENGTH; i++) {
-        int sample = (int)(sin(phase) * INT16_MAX);
-        mSineWaveTable[i] = (int16_t)sample;
-        phase += phaseInc;
-    }
-}
+//Synth::~Synth() { }
 
 void Synth::noteOn(int note)
 {
@@ -83,21 +97,11 @@ void Synth::writeSamples(int16_t *samples, long length)
             mCurPhase = mCurPhase - TABLE_LENGTH;
         }
         int phase_int = (int)mCurPhase;
-        int16_t sample = mSineWaveTable[phase_int];
+        int16_t sample = Synth::cSineWaveTable[phase_int];
         double amp = mEnvelope.amplitude(mCurTime);
         sample = (int16_t)(amp * (double)sample); // scale volume.
         samples[i] = sample;                      // left channel
         samples[i + 1] = sample;                  // right channel
     }
-}
-
-double Synth::getFrequency(double note)
-{
-    // Calculate pitch from note value.
-    // offset note by 57 halfnotes to get correct pitch from the range we have
-    // chosen for the notes.
-    double p = pow(CHROMATIC_BASE, note - 57);
-    p *= 440;
-    return p;
 }
 

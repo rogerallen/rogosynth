@@ -22,6 +22,7 @@ class App {
     void update();
     void cleanup();
     void resize(unsigned width, unsigned height);
+    int symToPitch(SDL_Keycode sym);
 
     AppWindow *mAppWindow;
     AppGL *mAppGL;

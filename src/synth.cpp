@@ -41,8 +41,7 @@ Synth::Synth()
     mEnvelope.sustain(0.8);
     mEnvelope.release(0.2);
 
-    mNote = -1; // negative when off
-    mOctave = 2;
+    mPitch = -1; // negative when off
     mKeyPressed = false;
 
     mCurPhase = 0;
@@ -51,13 +50,13 @@ Synth::Synth()
 
 //Synth::~Synth() { }
 
-void Synth::noteOn(int note)
+void Synth::noteOn(int pitch)
 {
     mKeyPressed = true;
-    mNote = std::clamp(note + 12 * mOctave, MIN_NOTE, MAX_NOTE);
+    mPitch = std::clamp(pitch, MIN_NOTE, MAX_NOTE);
     mEnvelope.noteOn(mCurTime);
 #ifndef NDEBUG
-    std::cout << "noteOn " << mNote << "\n";
+    std::cout << "noteOn  " << mPitch << "\n";
 #endif
 }
 
@@ -66,7 +65,7 @@ void Synth::noteOff()
     mKeyPressed = false;
     mEnvelope.noteOff(mCurTime);
 #ifndef NDEBUG
-    std::cout << "noteOff\n";
+    std::cout << "noteOff " << mPitch << "\n";
 #endif
 }
 
@@ -76,7 +75,7 @@ void Synth::addSamples(double *samples, long length)
         return;
     }
 
-    if (mNote < 0) {
+    if (mPitch < 0) {
         return;
     }
 
@@ -87,7 +86,7 @@ void Synth::addSamples(double *samples, long length)
     // get correct phase increment for note depending on sample rate and
     // table length.
     double time_inc = 1.0 / SAMPLE_RATE;
-    double phase_inc = (getFrequency(mNote) / SAMPLE_RATE) * TABLE_LENGTH;
+    double phase_inc = (getFrequency(mPitch) / SAMPLE_RATE) * TABLE_LENGTH;
 
     // loop through the buffer and write samples.
     for (int i = 0; i < length; i += 2) {

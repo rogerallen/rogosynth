@@ -19,17 +19,16 @@ class Synth {
     double mCurPhase;
     double mCurTime;
 
-    int mNote;
-    int mOctave;
+    int mPitch;
     bool mKeyPressed;
 
     Envelope mEnvelope;
 
   public:
     Synth();
-    //~Synth();
-    void noteOn(int note);
+    void noteOn(int pitch);
     void noteOff();
+    int pitch() { return mPitch; }
     void addSamples(double *samples, long length);
     void attack(double v) { mEnvelope.attack(v); }
     double attack() { return mEnvelope.attack(); }

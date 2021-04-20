@@ -12,26 +12,25 @@ static float getFrequency(float note)
     return p;
 }
 
-static int16_t *generateSineWaveTable()
+static float *generateSineWaveTable()
 {
-    int16_t *sineWaveTable = new int16_t[TABLE_LENGTH];
+    float *sineWaveTable = new float[TABLE_LENGTH];
 
-    // Generate a 16bit signed integer sinewave table with 1024 samples.
+    // Generate a float sinewave table with TABLE_LENGTH samples.
     // This table will be used to produce the notes.
     // Different notes will be created by stepping through
     // the table at different intervals (phase).
     float phaseInc = (2.0f * (float)M_PI) / (float)TABLE_LENGTH;
     float phase = 0;
     for (int i = 0; i < TABLE_LENGTH; i++) {
-        int sample = (int)(sin(phase) * INT16_MAX);
-        sineWaveTable[i] = (int16_t)sample;
+        sineWaveTable[i] = sin(phase);
         phase += phaseInc;
     }
 
     return sineWaveTable;
 }
 
-int16_t *Synth::cSineWaveTable = generateSineWaveTable();
+float *Synth::cSineWaveTable = generateSineWaveTable();
 
 Synth::Synth()
 {
@@ -70,8 +69,7 @@ void Synth::addSamples(float *samples, long length)
 
     // loop through the buffer and write samples.
     for (int i = 0; i < length; i += 2) {
-        float waveSample =
-            (float)Synth::cSineWaveTable[(int)mCurPhase] / INT16_MAX;
+        float waveSample = Synth::cSineWaveTable[(int)mCurPhase];
         float amp = mEnvelope.amplitude(mCurTime);
         float sample = amp * (float)waveSample; // scale volume.
         samples[i] += sample;                     // left channel

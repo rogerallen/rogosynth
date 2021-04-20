@@ -15,7 +15,7 @@ const int MAX_NOTE = 131;
 const int TABLE_LENGTH = 1024;
 
 class Synth {
-    static int16_t *cSineWaveTable;
+    static float *cSineWaveTable;
     float mCurPhase;
     float mCurTime;
     int mPitch;

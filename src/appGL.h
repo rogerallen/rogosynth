@@ -25,7 +25,7 @@ class AppGL {
                   << std::endl;
 #endif
         mWindow = appWindow;
-        glClearColor(1.0, 1.0, 0.5, 0.0);
+        glClearColor(0.20f, 0.20f, 0.20f, 1.00f);
         mCameraToView = glm::mat4(1.0f);
 #ifdef WIN32
         const std::string pathSep = "\\";

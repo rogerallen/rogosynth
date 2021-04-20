@@ -22,6 +22,7 @@ class App {
     bool initWindow();
     bool initAudio();
     void loop();
+    void showGUI();
     void update();
     void cleanup();
     void resize(unsigned width, unsigned height);

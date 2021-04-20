@@ -15,6 +15,8 @@
 #include <windows.h>
 #endif
 
+#include <string>
+
 // Go from C-style thread call to C++ method.
 // userdata points to the App class.
 static void staticAudioCallback(void *userdata, Uint8 *byte_stream,
@@ -40,7 +42,7 @@ App::App()
     mSwitchFullscreen = false;
     mIsFullscreen = false;
     mMouseDown = false;
-    mShowGUI = false;
+    mShowGUI = true;
 
     mPrevWindowWidth = mPrevWindowHeight = -1;
     mPrevWindowX = mPrevWindowY = -1;
@@ -134,17 +136,6 @@ bool App::initWindow()
     int startDim = std::min(mMonitorWidth, mMonitorHeight) / 2;
     mAppWindow = new AppWindow(startDim, startDim);
 
-    // Create main window
-    mSDLWindow = SDL_CreateWindow("rogosynth", SDL_WINDOWPOS_CENTERED,
-                                  SDL_WINDOWPOS_CENTERED, startDim, startDim,
-                                  SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE |
-                                      SDL_WINDOW_ALLOW_HIGHDPI);
-    if (mSDLWindow == NULL) {
-        std::cerr << "Failed to create main window" << std::endl;
-        SDL_Quit();
-        return true;
-    }
-
     // Initialize rendering context
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
@@ -155,6 +146,17 @@ bool App::initWindow()
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+
+    // Create main window
+    mSDLWindow = SDL_CreateWindow("rogosynth", SDL_WINDOWPOS_CENTERED,
+                                  SDL_WINDOWPOS_CENTERED, startDim, startDim,
+                                  SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE |
+                                      SDL_WINDOW_ALLOW_HIGHDPI);
+    if (mSDLWindow == NULL) {
+        std::cerr << "Failed to create main window" << std::endl;
+        SDL_Quit();
+        return true;
+    }
 
     mSDLGLContext = SDL_GL_CreateContext(mSDLWindow);
     if (mSDLGLContext == NULL) {
@@ -188,6 +190,25 @@ bool App::initWindow()
     // setup platform/renderer bindings
     ImGui_ImplSDL2_InitForOpenGL(mSDLWindow, mSDLGLContext);
     ImGui_ImplOpenGL3_Init("#version 330");
+
+    // Handle High DPI scaling
+    float ddpi, hdpi, vdpi;
+    if (SDL_GetDisplayDPI(0, &ddpi, &hdpi, &vdpi) != 0) {
+        fprintf(stderr, "Failed to obtain DPI information for display 0: %s\n",
+                SDL_GetError());
+        exit(1);
+    }
+    const float defaultDpi =
+#if defined(_WIN32)
+        96.0f;
+#else
+        72.0f; // Mac for sure.  Linux?
+#endif
+    float dpi_scaling = ddpi / defaultDpi;
+    // from https://twitter.com/ocornut/status/939547856171659264?lang=en
+    ImFontConfig cfg;
+    cfg.SizePixels = 13 * dpi_scaling;
+    ImGui::GetIO().Fonts->AddFontDefault(&cfg)->DisplayOffset.y = dpi_scaling;
 
     // colors are set in RGBA, but as float
     // ImVec4 background = ImVec4(35/255.0f, 35/255.0f, 35/255.0f, 1.00f);
@@ -382,24 +403,50 @@ void App::loop()
 
         update();
         mAppGL->render();
-
-        {
-            ImGui_ImplOpenGL3_NewFrame();
-            ImGui_ImplSDL2_NewFrame(mSDLWindow);
-            ImGui::NewFrame();
-            if (mShowGUI) {
-                ImGui::Begin("Information", NULL,
-                             ImGuiWindowFlags_AlwaysAutoResize);
-                ImGui::Text("Framerate  : %.1f ms or %.1f Hz",
-                            1000.0f / ImGui::GetIO().Framerate,
-                            ImGui::GetIO().Framerate);
-                ImGui::End();
-            }
-            ImGui::Render();
-            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        }
+        showGUI();
 
         SDL_GL_SwapWindow(mSDLWindow);
+    }
+}
+
+void App::showGUI()
+{
+
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplSDL2_NewFrame(mSDLWindow);
+    ImGui::NewFrame();
+    float amplitude = mSynths[0]->amplitude();
+    float attack = mSynths[0]->attack();
+    float decay = mSynths[0]->decay();
+    float sustain = mSynths[0]->sustain();
+    float release = mSynths[0]->release();
+    std::string pitchString = "pitches: ";
+    for(int i = 0; i < NUM_SYNTHS; i++) {
+        if(mSynths[i]->active()) {
+            pitchString += std::to_string(mSynths[i]->pitch()) + " ";
+        }
+    }
+    if (mShowGUI) {
+        ImGui::Begin("Information", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+        ImGui::SliderFloat("amplitude", &amplitude, 0.0f, 1.0f);
+        ImGui::SliderFloat("attack", &attack, 0.0f, 3.0f);
+        ImGui::SliderFloat("decay", &decay, 0.0f, 3.0f);
+        ImGui::SliderFloat("sustain", &sustain, 0.0f, 1.0f);
+        ImGui::SliderFloat("release", &release, 0.0f, 3.0f);
+        ImGui::Text(pitchString.c_str());
+        ImGui::Text("Framerate  : %.1f ms or %.1f Hz",
+                    1000.0f / ImGui::GetIO().Framerate,
+                    ImGui::GetIO().Framerate);
+        ImGui::End();
+    }
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    for(int i = 0; i < NUM_SYNTHS; i++) {
+        mSynths[i]->amplitude(amplitude);
+        mSynths[i]->attack(attack);
+        mSynths[i]->decay(decay);
+        mSynths[i]->sustain(sustain);
+        mSynths[i]->release(release);
     }
 }
 

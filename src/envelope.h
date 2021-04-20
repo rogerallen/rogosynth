@@ -91,7 +91,7 @@ class Envelope {
             float curTime = time - mReleaseTime;
             if (curTime <= mRelease) {
                 // Release
-                return mReleaseAmplitude * (1.0f - curTime / mDecay);
+                return mReleaseAmplitude * (1.0f - curTime / mRelease);
             }
             // done
             return 0.0f;

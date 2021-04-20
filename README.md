@@ -18,8 +18,9 @@ Got Windows Build working with both:
 
 ## Issues
 - [DONE] needs better ADSR envelope
-- [IN PROGRESS] one note at a time, needs polyphony
-- [IN PROGRESS] needs a mixer.  Could use float buffer prior to mixer & have mixer output u16
+- [DONE] one note at a time, needs polyphony
+- [DONE] basic GUI
+- needs a compressor
 - sine table only, could use square, triangle & sawtooth waves
 - could use stereo pan
 - could use resonant LPF after that

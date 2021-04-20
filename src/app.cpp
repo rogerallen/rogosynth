@@ -32,7 +32,7 @@ App::App()
     mSDLGLContext = nullptr;
 
     for (int i = 0; i < NUM_SYNTHS; i++) {
-        mSynths[i] = new Synth();
+        mSynths[i] = new Synth(SYNTH_AMPLITUDE);
     }
     mAudioBuffer = nullptr;
     mAudioBufferSize = 0;
@@ -585,11 +585,11 @@ void App::audioCallback(Uint8 *byte_stream, int byte_stream_size_in_bytes)
         // always call addSamples so time & phase are consistent
         mSynths[i]->addSamples(mAudioBuffer, sizeInSamples);
     }
+    // FIXME -- eventually need a compressor to keep mAudioBuffer [-1,1]
     if (numActiveSynths > 0) {
         Sint16 *short_stream = (Sint16 *)byte_stream;
         for (int i = 0; i < sizeInSamples; i++) {
-            // hack fixme multiply by 1/8 to keep in range.  works without pops
-            short_stream[i] = (Sint16)(mAudioBuffer[i] * SYNTH_AMPLITUDE * (float)INT16_MAX);
+            short_stream[i] = (Sint16)(mAudioBuffer[i] * (float)INT16_MAX);
         }
     }
 }

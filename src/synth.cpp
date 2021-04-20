@@ -32,7 +32,7 @@ static float *generateSineWaveTable()
 
 float *Synth::cSineWaveTable = generateSineWaveTable();
 
-Synth::Synth()
+Synth::Synth(float amp) : mAmplitude(amp)
 {
     mCurPhase = 0;
     mCurTime = 0.0;
@@ -65,15 +65,16 @@ void Synth::addSamples(float *samples, long length)
 {
     // get correct phase increment for note depending on sample rate and
     // table length.
-    float phase_inc = (getFrequency((float)mPitch) / SAMPLE_RATE) * TABLE_LENGTH;
+    float phase_inc =
+        (getFrequency((float)mPitch) / SAMPLE_RATE) * TABLE_LENGTH;
 
     // loop through the buffer and write samples.
     for (int i = 0; i < length; i += 2) {
         float waveSample = Synth::cSineWaveTable[(int)mCurPhase];
-        float amp = mEnvelope.amplitude(mCurTime);
-        float sample = amp * (float)waveSample; // scale volume.
-        samples[i] += sample;                     // left channel
-        samples[i + 1] += sample;                 // right channel
+        float envAmp = mEnvelope.amplitude(mCurTime);
+        float sample = mAmplitude * envAmp * (float)waveSample; // scale volume.
+        samples[i] += sample;                                   // left channel
+        samples[i + 1] += sample;                               // right channel
         mCurTime += TIME_INC;
         mCurPhase += phase_inc;
         if (mCurPhase >= TABLE_LENGTH) {

@@ -16,15 +16,18 @@ const int TABLE_LENGTH = 1024;
 
 class Synth {
     static float *cSineWaveTable;
+    float mAmplitude;
     float mCurPhase;
     float mCurTime;
     int mPitch;
     Envelope mEnvelope;
 
   public:
-    Synth();
+    Synth(float amp);
     void noteOn(int pitch);
     void noteOff();
+    float amplitude() { return mAmplitude; }
+    void amplitude(float v) { mAmplitude = v; }
     int pitch() { return mPitch; }
     void addSamples(float *samples, long length);
     void attack(float v) { mEnvelope.attack(v); }

@@ -3,50 +3,50 @@
 #include <algorithm>
 
 class Envelope {
-    double mAttack, mDecay, mSustain, mRelease;
-    double mStartTime;
-    double mReleaseTime;
+    float mAttack, mDecay, mSustain, mRelease;
+    float mStartTime;
+    float mReleaseTime;
     // need to track amplitude prior to release since release can come at any
     // time, not just when you get to sustain part.
-    double mCurAmplitude;
+    float mCurAmplitude;
     // snapshot cur amplitude at the start of release
-    double mReleaseAmplitude;
+    float mReleaseAmplitude;
 
   public:
     Envelope() : Envelope(0.5, 0.5, 0.5, 0.5) {}
-    Envelope(double a, double d, double s, double r)
+    Envelope(float a, float d, float s, float r)
     {
         attack(a);
         decay(d);
         sustain(s);
         release(r);
-        mCurAmplitude = 0.0;
-        mReleaseAmplitude = 0.0;
-        mStartTime = -1.0;
-        mReleaseTime = -1.0;
+        mCurAmplitude = 0.0f;
+        mReleaseAmplitude = 0.0f;
+        mStartTime = -1.0f;
+        mReleaseTime = -1.0f;
     }
-    void attack(double v) { mAttack = std::max(v, 0.0); }
-    double attack() { return mAttack; }
-    void decay(double v) { mDecay = std::max(v, 0.0); }
-    double decay() { return mDecay; }
-    void sustain(double v) { mSustain = std::clamp(v, 0.0, 1.0); }
-    double sustain() { return mSustain; }
-    void release(double v) { mRelease = std::max(v, 0.0); }
-    double release() { return mRelease; }
-    void noteOn(double time)
+    void attack(float v) { mAttack = std::max(v, 0.0f); }
+    float attack() { return mAttack; }
+    void decay(float v) { mDecay = std::max(v, 0.0f); }
+    float decay() { return mDecay; }
+    void sustain(float v) { mSustain = std::clamp(v, 0.0f, 1.0f); }
+    float sustain() { return mSustain; }
+    void release(float v) { mRelease = std::max(v, 0.0f); }
+    float release() { return mRelease; }
+    void noteOn(float time)
     {
         mStartTime = time;
         mReleaseTime = -1.0;
         mCurAmplitude = 0.0;
         mReleaseAmplitude = 0.0;
     }
-    void noteOff(double time)
+    void noteOff(float time)
     {
         mReleaseTime = time;
         // snapshot current amplitude.  No need to track it after this
         mReleaseAmplitude = mCurAmplitude;
     }
-    bool active(double time)
+    bool active(float time)
     {
         if (mStartTime < 0.0) {
             return false;
@@ -65,12 +65,12 @@ class Envelope {
         // time prior to startTime?
         return false;
     }
-    bool releasing(double time) { return mReleaseTime > 0.0; }
-    double amplitude(double time)
+    bool releasing(float time) { return mReleaseTime > 0.0; }
+    float amplitude(float time)
     {
         if (mReleaseTime < mStartTime) {
             // Attack, Decay, Sustain
-            double curTime = time - mStartTime;
+            float curTime = time - mStartTime;
             if (curTime <= mAttack) {
                 // Attack
                 mCurAmplitude = curTime / mAttack;
@@ -80,7 +80,7 @@ class Envelope {
             if (curTime <= mDecay) {
                 // Decay
                 mCurAmplitude =
-                    mSustain + (1.0 - mSustain) * (1.0 - curTime / mDecay);
+                    mSustain + (1.0f - mSustain) * (1.0f - curTime / mDecay);
                 return mCurAmplitude;
             }
             // Sustain
@@ -88,13 +88,13 @@ class Envelope {
             return mCurAmplitude;
         }
         else {
-            double curTime = time - mReleaseTime;
+            float curTime = time - mReleaseTime;
             if (curTime <= mRelease) {
                 // Release
-                return mReleaseAmplitude * (1.0 - curTime / mDecay);
+                return mReleaseAmplitude * (1.0f - curTime / mDecay);
             }
             // done
-            return 0.0;
+            return 0.0f;
         }
     }
 };

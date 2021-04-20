@@ -13,7 +13,8 @@
 #include <iostream>
 #include <string>
 
-const int NUM_SYNTHS = 10;
+const int NUM_SYNTHS = 8;
+const float SYNTH_AMPLITUDE = 1.0f/NUM_SYNTHS;
 
 class App {
 
@@ -35,7 +36,7 @@ class App {
     SDL_AudioDeviceID mAudioDevice;
 
     Synth *mSynths[NUM_SYNTHS];
-    double *mAudioBuffer;
+    float *mAudioBuffer;
     int mAudioBufferSize;
 
     bool mSwitchFullscreen;

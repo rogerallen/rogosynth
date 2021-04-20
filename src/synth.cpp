@@ -2,12 +2,12 @@
 #include <algorithm>
 #include <iostream>
 
-static double getFrequency(double note)
+static float getFrequency(float note)
 {
     // Calculate pitch from note value.
     // offset note by 57 halfnotes to get correct pitch from the range we have
     // chosen for the notes.
-    double p = pow(CHROMATIC_BASE, note - 57);
+    float p = pow(CHROMATIC_BASE, note - 57);
     p *= 440;
     return p;
 }
@@ -20,8 +20,8 @@ static int16_t *generateSineWaveTable()
     // This table will be used to produce the notes.
     // Different notes will be created by stepping through
     // the table at different intervals (phase).
-    double phaseInc = (2.0 * M_PI) / (double)TABLE_LENGTH;
-    double phase = 0;
+    float phaseInc = (2.0f * (float)M_PI) / (float)TABLE_LENGTH;
+    float phase = 0;
     for (int i = 0; i < TABLE_LENGTH; i++) {
         int sample = (int)(sin(phase) * INT16_MAX);
         sineWaveTable[i] = (int16_t)sample;
@@ -38,10 +38,10 @@ Synth::Synth()
     mCurPhase = 0;
     mCurTime = 0.0;
     mPitch = MIN_NOTE;
-    mEnvelope.attack(0.2);
-    mEnvelope.decay(0.2);
-    mEnvelope.sustain(0.8);
-    mEnvelope.release(0.2);
+    mEnvelope.attack(0.2f);
+    mEnvelope.decay(0.2f);
+    mEnvelope.sustain(0.8f);
+    mEnvelope.release(0.2f);
 }
 
 void Synth::noteOn(int pitch)
@@ -62,18 +62,18 @@ void Synth::noteOff()
 }
 
 // add samples to the samples buffer
-void Synth::addSamples(double *samples, long length)
+void Synth::addSamples(float *samples, long length)
 {
     // get correct phase increment for note depending on sample rate and
     // table length.
-    double phase_inc = (getFrequency(mPitch) / SAMPLE_RATE) * TABLE_LENGTH;
+    float phase_inc = (getFrequency((float)mPitch) / SAMPLE_RATE) * TABLE_LENGTH;
 
     // loop through the buffer and write samples.
     for (int i = 0; i < length; i += 2) {
-        double waveSample =
-            (double)Synth::cSineWaveTable[(int)mCurPhase] / INT16_MAX;
-        double amp = mEnvelope.amplitude(mCurTime);
-        double sample = amp * (double)waveSample; // scale volume.
+        float waveSample =
+            (float)Synth::cSineWaveTable[(int)mCurPhase] / INT16_MAX;
+        float amp = mEnvelope.amplitude(mCurTime);
+        float sample = amp * (float)waveSample; // scale volume.
         samples[i] += sample;                     // left channel
         samples[i + 1] += sample;                 // right channel
         mCurTime += TIME_INC;

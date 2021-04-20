@@ -573,9 +573,9 @@ void App::audioCallback(Uint8 *byte_stream, int byte_stream_size_in_bytes)
         if (mAudioBuffer != nullptr) {
             delete[] mAudioBuffer;
         }
-        mAudioBuffer = new double[sizeInSamples];
+        mAudioBuffer = new float[sizeInSamples];
     }
-    memset(mAudioBuffer, 0, sizeof(double) * sizeInSamples);
+    memset(mAudioBuffer, 0, sizeof(float) * sizeInSamples);
 
     int numActiveSynths = 0;
     for (int i = 0; i < NUM_SYNTHS; i++) {
@@ -589,7 +589,7 @@ void App::audioCallback(Uint8 *byte_stream, int byte_stream_size_in_bytes)
         Sint16 *short_stream = (Sint16 *)byte_stream;
         for (int i = 0; i < sizeInSamples; i++) {
             // hack fixme multiply by 1/8 to keep in range.  works without pops
-            short_stream[i] = (Sint16)(mAudioBuffer[i] * 0.125 * (double)INT16_MAX);
+            short_stream[i] = (Sint16)(mAudioBuffer[i] * SYNTH_AMPLITUDE * (float)INT16_MAX);
         }
     }
 }

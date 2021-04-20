@@ -8,16 +8,16 @@
 #include "envelope.h"
 
 const int SAMPLE_RATE = 44100;
-const double TIME_INC = 1.0 / SAMPLE_RATE;
-const double CHROMATIC_BASE = pow(2.0, 1.0 / 12.0); // 2^(1/12)
+const float TIME_INC = 1.0f / SAMPLE_RATE;
+const float CHROMATIC_BASE = powf(2.0f, 1.0f / 12.0f); // 2^(1/12)
 const int MIN_NOTE = 12;
 const int MAX_NOTE = 131;
 const int TABLE_LENGTH = 1024;
 
 class Synth {
     static int16_t *cSineWaveTable;
-    double mCurPhase;
-    double mCurTime;
+    float mCurPhase;
+    float mCurTime;
     int mPitch;
     Envelope mEnvelope;
 
@@ -26,15 +26,15 @@ class Synth {
     void noteOn(int pitch);
     void noteOff();
     int pitch() { return mPitch; }
-    void addSamples(double *samples, long length);
-    void attack(double v) { mEnvelope.attack(v); }
-    double attack() { return mEnvelope.attack(); }
-    void decay(double v) { mEnvelope.decay(v); }
-    double decay() { return mEnvelope.decay(); }
-    void sustain(double v) { mEnvelope.sustain(v); }
-    double sustain() { return mEnvelope.sustain(); }
-    void release(double v) { mEnvelope.release(v); }
-    double release() { return mEnvelope.release(); }
+    void addSamples(float *samples, long length);
+    void attack(float v) { mEnvelope.attack(v); }
+    float attack() { return mEnvelope.attack(); }
+    void decay(float v) { mEnvelope.decay(v); }
+    float decay() { return mEnvelope.decay(); }
+    void sustain(float v) { mEnvelope.sustain(v); }
+    float sustain() { return mEnvelope.sustain(); }
+    void release(float v) { mEnvelope.release(v); }
+    float release() { return mEnvelope.release(); }
     bool active() { return mEnvelope.active(mCurTime); }
     bool releasing() { return mEnvelope.releasing(mCurTime); }
 };

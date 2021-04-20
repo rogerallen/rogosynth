@@ -336,7 +336,8 @@ void App::loop()
                     for (int i = 0; i < NUM_SYNTHS; i++) {
                         if (mSynths[i]->pitch() == pitch) {
                             if (mSynths[i]->releasing()) {
-                                std::cout << "note releasing already. keep looking\n";
+                                std::cout
+                                    << "note releasing already. keep looking\n";
                                 continue;
                             }
                             foundSynth = true;
@@ -550,8 +551,8 @@ int App::symToPitch(SDL_Keycode sym)
         pitch = 40;
         break;
     }
-    if(pitch > 0) {
-        pitch += 2*12;
+    if (pitch > 0) {
+        pitch += 2 * 12;
     }
     return pitch;
 }
@@ -562,7 +563,7 @@ void App::audioCallback(Uint8 *byte_stream, int byte_stream_size_in_bytes)
     memset(byte_stream, 0, byte_stream_size_in_bytes);
 
     // if necessary, create the mAudioBuffer
-    int sizeInSamples = byte_stream_size_in_bytes / 2;
+    int sizeInSamples = byte_stream_size_in_bytes / 2; // 16bit samples
     if (mAudioBufferSize < sizeInSamples) {
 #ifndef NDEBUG
         std::cout << "Create audio blend buffer of " << sizeInSamples
@@ -580,14 +581,15 @@ void App::audioCallback(Uint8 *byte_stream, int byte_stream_size_in_bytes)
     for (int i = 0; i < NUM_SYNTHS; i++) {
         if (mSynths[i]->active()) {
             numActiveSynths++;
-            mSynths[i]->addSamples(mAudioBuffer, sizeInSamples);
         }
+        // always call addSamples so time & phase are consistent
+        mSynths[i]->addSamples(mAudioBuffer, sizeInSamples);
     }
     if (numActiveSynths > 0) {
         Sint16 *short_stream = (Sint16 *)byte_stream;
         for (int i = 0; i < sizeInSamples; i++) {
-            short_stream[i] =
-                (Sint16)(mAudioBuffer[i] * (double)INT16_MAX / (double)numActiveSynths);
+            // hack fixme multiply by 1/8 to keep in range.  works without pops
+            short_stream[i] = (Sint16)(mAudioBuffer[i] * 0.125 * (double)INT16_MAX);
         }
     }
 }

@@ -35,24 +35,17 @@ int16_t *Synth::cSineWaveTable = generateSineWaveTable();
 
 Synth::Synth()
 {
-
+    mCurPhase = 0;
+    mCurTime = 0.0;
+    mPitch = MIN_NOTE;
     mEnvelope.attack(0.2);
     mEnvelope.decay(0.2);
     mEnvelope.sustain(0.8);
     mEnvelope.release(0.2);
-
-    mPitch = -1; // negative when off
-    mKeyPressed = false;
-
-    mCurPhase = 0;
-    mCurTime = 0.0;
 }
-
-//Synth::~Synth() { }
 
 void Synth::noteOn(int pitch)
 {
-    mKeyPressed = true;
     mPitch = std::clamp(pitch, MIN_NOTE, MAX_NOTE);
     mEnvelope.noteOn(mCurTime);
 #ifndef NDEBUG
@@ -62,45 +55,31 @@ void Synth::noteOn(int pitch)
 
 void Synth::noteOff()
 {
-    mKeyPressed = false;
     mEnvelope.noteOff(mCurTime);
 #ifndef NDEBUG
     std::cout << "noteOff " << mPitch << "\n";
 #endif
 }
 
+// add samples to the samples buffer
 void Synth::addSamples(double *samples, long length)
 {
-    if (samples == NULL) {
-        return;
-    }
-
-    if (mPitch < 0) {
-        return;
-    }
-
-    if (!mEnvelope.active(mCurTime)) {
-        return;
-    }
-
     // get correct phase increment for note depending on sample rate and
     // table length.
-    double time_inc = 1.0 / SAMPLE_RATE;
     double phase_inc = (getFrequency(mPitch) / SAMPLE_RATE) * TABLE_LENGTH;
 
     // loop through the buffer and write samples.
     for (int i = 0; i < length; i += 2) {
-        mCurTime += time_inc;
+        double waveSample =
+            (double)Synth::cSineWaveTable[(int)mCurPhase] / INT16_MAX;
+        double amp = mEnvelope.amplitude(mCurTime);
+        double sample = amp * (double)waveSample; // scale volume.
+        samples[i] += sample;                     // left channel
+        samples[i + 1] += sample;                 // right channel
+        mCurTime += TIME_INC;
         mCurPhase += phase_inc;
         if (mCurPhase >= TABLE_LENGTH) {
             mCurPhase = mCurPhase - TABLE_LENGTH;
         }
-        int phase_int = (int)mCurPhase;
-        int16_t sample = Synth::cSineWaveTable[phase_int];
-        double amp = mEnvelope.amplitude(mCurTime);
-        double dSample = amp * (double)sample/INT16_MAX; // scale volume.
-        samples[i] += dSample;                      // left channel
-        samples[i + 1] += dSample;                  // right channel
     }
 }
-

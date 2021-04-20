@@ -4,10 +4,13 @@
 
 class Envelope {
     double mAttack, mDecay, mSustain, mRelease;
-    double mCurAmplitude;
-    double mReleaseAmplitude;
     double mStartTime;
     double mReleaseTime;
+    // need to track amplitude prior to release since release can come at any
+    // time, not just when you get to sustain part.
+    double mCurAmplitude;
+    // snapshot cur amplitude at the start of release
+    double mReleaseAmplitude;
 
   public:
     Envelope() : Envelope(0.5, 0.5, 0.5, 0.5) {}
@@ -17,10 +20,7 @@ class Envelope {
         decay(d);
         sustain(s);
         release(r);
-        // need to track amplitude since release can come at any time,
-        // not just when you get to sustain part.
         mCurAmplitude = 0.0;
-        // snapshot cur amplitude at the start of release
         mReleaseAmplitude = 0.0;
         mStartTime = -1.0;
         mReleaseTime = -1.0;
@@ -43,6 +43,7 @@ class Envelope {
     void noteOff(double time)
     {
         mReleaseTime = time;
+        // snapshot current amplitude.  No need to track it after this
         mReleaseAmplitude = mCurAmplitude;
     }
     bool active(double time)

@@ -12,28 +12,63 @@ static float getFrequency(float note)
     return p;
 }
 
+#ifndef NDEBUG
+void reportTableMinMax(float *waveTable, std::string name)
+{
+    float mn = 0.0f, mx = 0.0f;
+    for (int i = 0; i < TABLE_LENGTH; i++) {
+        mn = std::min(waveTable[i], mn);
+        mx = std::max(waveTable[i], mx);
+    }
+    // FIXME? do we want to rescale to [-1.0,1.0]?
+    std::cout << name << " min=" << mn << " max=" << mx << "\n";
+}
+#endif
+
+// Generate a float wave tables with TABLE_LENGTH samples.
+// This table will be used to produce the notes.
+// Different notes will be created by stepping through
+// the table at different intervals (phase).
 static float *generateSineWaveTable()
 {
-    float *sineWaveTable = new float[TABLE_LENGTH];
-
-    // Generate a float sinewave table with TABLE_LENGTH samples.
-    // This table will be used to produce the notes.
-    // Different notes will be created by stepping through
-    // the table at different intervals (phase).
+    float *waveTable = new float[TABLE_LENGTH];
     float phaseInc = (2.0f * (float)M_PI) / (float)TABLE_LENGTH;
     float phase = 0;
     for (int i = 0; i < TABLE_LENGTH; i++) {
-        sineWaveTable[i] = sin(phase);
+        waveTable[i] = sin(phase);
         phase += phaseInc;
     }
+    return waveTable;
+}
 
-    return sineWaveTable;
+static float *generateSawtoothWaveTable()
+{
+    float *waveTable = new float[TABLE_LENGTH];
+    memset(waveTable, 0, sizeof(float) * TABLE_LENGTH);
+    float numOctaves = (int)(SAMPLE_RATE / 2.0 / 440.0);
+    for (int octave = 1; octave < numOctaves; octave++) {
+        float phaseInc = (octave * 2.0f * (float)M_PI) / (float)TABLE_LENGTH;
+        float phase = 0;
+        float sign = (octave & 1) ? -1.0f : 1.0f;
+        for (int i = 0; i < TABLE_LENGTH; i++) {
+            waveTable[i] += (sign * sin(phase) / octave) * (2.0f / (float)M_PI);
+            phase += phaseInc;
+        }
+    }
+#ifndef NDEBUG
+    reportTableMinMax(waveTable, "SAW");
+#endif
+    return waveTable;
 }
 
 float *Synth::cSineWaveTable = generateSineWaveTable();
+float *Synth::cSawtoothWaveTable = generateSawtoothWaveTable();
+float *Synth::cSquareWaveTable = generateSawtoothWaveTable();   // FIXME
+float *Synth::cTriangleWaveTable = generateSawtoothWaveTable(); // FIXME
 
 Synth::Synth(float amp) : mAmplitude(amp)
 {
+    mType = SynthType::sine;
     mCurPhase = 0;
     mCurTime = 0.0;
     mPitch = MIN_NOTE;
@@ -69,8 +104,22 @@ void Synth::addSamples(float *samples, long length)
         (getFrequency((float)mPitch) / SAMPLE_RATE) * TABLE_LENGTH;
 
     // loop through the buffer and write samples.
+    float waveSample;
     for (int i = 0; i < length; i += 2) {
-        float waveSample = Synth::cSineWaveTable[(int)mCurPhase];
+        switch (mType) {
+        case SynthType::sine:
+            waveSample = Synth::cSineWaveTable[(int)mCurPhase];
+            break;
+        case SynthType::sawtooth:
+            waveSample = Synth::cSawtoothWaveTable[(int)mCurPhase];
+            break;
+        case SynthType::square: 
+            waveSample = Synth::cSquareWaveTable[(int)mCurPhase];
+            break;
+        case SynthType::triangle:
+            waveSample = Synth::cTriangleWaveTable[(int)mCurPhase];
+            break;
+        }
         float envAmp = mEnvelope.amplitude(mCurTime);
         float sample = mAmplitude * envAmp * (float)waveSample; // scale volume.
         samples[i] += sample;                                   // left channel

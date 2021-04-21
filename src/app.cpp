@@ -421,32 +421,70 @@ void App::showGUI()
     float sustain = mSynths[0]->sustain();
     float release = mSynths[0]->release();
     std::string pitchString = "pitches: ";
-    for(int i = 0; i < NUM_SYNTHS; i++) {
-        if(mSynths[i]->active()) {
+    for (int i = 0; i < NUM_SYNTHS; i++) {
+        if (mSynths[i]->active()) {
             pitchString += std::to_string(mSynths[i]->pitch()) + " ";
         }
     }
+    SynthType type = mSynths[0]->type();
+    int typeInt;
+    switch (type) {
+    case SynthType::sine:
+        typeInt = 0;
+        break;
+    case SynthType::sawtooth:
+        typeInt = 1;
+        break;
+    case SynthType::square:
+        typeInt = 2;
+        break;
+    case SynthType::triangle:
+        typeInt = 3;
+        break;
+    }
     if (mShowGUI) {
-        ImGui::Begin("Information", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+        ImGui::Begin("Synth", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+        ImGui::RadioButton("sine", &typeInt, 0);
+        ImGui::SameLine();
+        ImGui::RadioButton("sawtooth", &typeInt, 1);
+        ImGui::SameLine();
+        ImGui::RadioButton("square", &typeInt, 2);
+        ImGui::SameLine();
+        ImGui::RadioButton("triangle", &typeInt, 3);
         ImGui::SliderFloat("amplitude", &amplitude, 0.0f, 1.0f);
         ImGui::SliderFloat("attack", &attack, 0.0f, 3.0f);
         ImGui::SliderFloat("decay", &decay, 0.0f, 3.0f);
         ImGui::SliderFloat("sustain", &sustain, 0.0f, 1.0f);
         ImGui::SliderFloat("release", &release, 0.0f, 3.0f);
         ImGui::Text(pitchString.c_str());
-        ImGui::Text("Framerate  : %.1f ms or %.1f Hz",
-                    1000.0f / ImGui::GetIO().Framerate,
-                    ImGui::GetIO().Framerate);
+        //ImGui::Text("Framerate  : %.1f ms or %.1f Hz",
+        //            1000.0f / ImGui::GetIO().Framerate,
+        //            ImGui::GetIO().Framerate);
         ImGui::End();
     }
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    for(int i = 0; i < NUM_SYNTHS; i++) {
+    switch (typeInt) {
+    case 0:
+        type = SynthType::sine;
+        break;
+    case 1:
+        type = SynthType::sawtooth;
+        break;
+    case 2:
+        type = SynthType::square;
+        break;
+    case 3:
+        type = SynthType::triangle;
+        break;
+    }
+    for (int i = 0; i < NUM_SYNTHS; i++) {
         mSynths[i]->amplitude(amplitude);
         mSynths[i]->attack(attack);
         mSynths[i]->decay(decay);
         mSynths[i]->sustain(sustain);
         mSynths[i]->release(release);
+        mSynths[i]->type(type);
     }
 }
 

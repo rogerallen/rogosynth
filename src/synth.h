@@ -14,8 +14,14 @@ const int MIN_NOTE = 12;
 const int MAX_NOTE = 131;
 const int TABLE_LENGTH = 1024;
 
+enum SynthType { sine, sawtooth, square, triangle };
+
 class Synth {
     static float *cSineWaveTable;
+    static float *cSawtoothWaveTable;
+    static float *cSquareWaveTable;
+    static float *cTriangleWaveTable;
+    SynthType mType;
     float mAmplitude;
     float mCurPhase;
     float mCurTime;
@@ -24,12 +30,17 @@ class Synth {
 
   public:
     Synth(float amp);
+    // main controls
     void noteOn(int pitch);
     void noteOff();
+    // workhorse routine
+    void addSamples(float *samples, long length);
+    // getters, setters
     float amplitude() { return mAmplitude; }
     void amplitude(float v) { mAmplitude = v; }
     int pitch() { return mPitch; }
-    void addSamples(float *samples, long length);
+    SynthType type() { return mType; }
+    void type(SynthType v) { mType = v; }
     void attack(float v) { mEnvelope.attack(v); }
     float attack() { return mEnvelope.attack(); }
     void decay(float v) { mEnvelope.decay(v); }

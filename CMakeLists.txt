@@ -23,7 +23,7 @@ set(IMGUI_IMPL_SOURCES ${IMGUI_ROOT}/examples/imgui_impl_sdl.cpp ${IMGUI_ROOT}/e
 
 add_executable(rogosynth src/main.cpp src/app.cpp src/appGL.cpp src/synth.cpp 
     src/audio.c
-    src/sndfilter/compressor.c
+    src/sndfilter/biquad.c src/sndfilter/compressor.c
     ${IMGUI_SOURCES} ${IMGUI_IMPL_SOURCES})
 
 target_include_directories(rogosynth PUBLIC "${IMGUI_ROOT}")

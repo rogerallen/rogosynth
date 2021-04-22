@@ -1,6 +1,7 @@
 #include "app.h"
 #include "audio.h"
 extern "C" {
+#include "sndfilter/biquad.h"
 #include "sndfilter/compressor.h"
 }
 #include "examples/imgui_impl_opengl3.h"
@@ -679,18 +680,22 @@ void App::audioCallback(Uint8 *byte_stream, int byte_stream_size_in_bytes)
     }
     // pan signal
     pan(mAudioBuffer, mAudioBufferSize, mPanPosition);
-    // compressor
-    static bool init_compressor = false;
+    // compressor & low pass resonant filter
+    static bool init_sf = false;
     static sf_compressor_state_st cm_state;
-    if(!init_compressor) {
+    static sf_biquad_state_st bq_state;
+    if(!init_sf) {
         sf_defaultcomp(&cm_state, SAMPLE_RATE);
-        init_compressor = true;
+        sf_lowpass(&bq_state, SAMPLE_RATE, 500.0f, 5.0f);
+        init_sf = true;
     }
     sf_compressor_process(&cm_state, sizeInSamples/2, (sf_sample_st *)mAudioBuffer, (sf_sample_st *)mAudioBuffer2);
+    // low pass resonant filter
+    sf_biquad_process(&bq_state, sizeInSamples/2, (sf_sample_st *)mAudioBuffer2, (sf_sample_st *)mAudioBuffer);
     if (numActiveSynths > 0) {
         Sint16 *short_stream = (Sint16 *)byte_stream;
         for (int i = 0; i < sizeInSamples; i++) {
-            short_stream[i] = (Sint16)(mAudioBuffer2[i] * (float)INT16_MAX);
+            short_stream[i] = (Sint16)(mAudioBuffer[i] * (float)INT16_MAX);
         }
     }
 }

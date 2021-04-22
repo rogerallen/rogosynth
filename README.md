@@ -21,7 +21,7 @@ Got Windows Build working with both:
 - [DONE] one note at a time, needs polyphony
 - [DONE] basic GUI
 - [DONE] sine, square, triangle & sawtooth waves
+- [DONE] could use stereo pan
 - needs a compressor
-- could use stereo pan
 - could use resonant LPF after synth
 - low freq osc input to offset pitch, amplitude, phase

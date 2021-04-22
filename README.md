@@ -20,8 +20,8 @@ Got Windows Build working with both:
 - [DONE] needs better ADSR envelope
 - [DONE] one note at a time, needs polyphony
 - [DONE] basic GUI
+- [DONE] sine, square, triangle & sawtooth waves
 - needs a compressor
-- sine table only, could use square, triangle & sawtooth waves
 - could use stereo pan
-- could use resonant LPF after that
-
+- could use resonant LPF after synth
+- low freq osc input to offset pitch, amplitude, phase

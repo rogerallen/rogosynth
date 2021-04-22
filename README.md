@@ -2,9 +2,9 @@
 
 SDL2 audio synthesis.
 
-Initially based on https://github.com/lundstroem/synth-samples-sdl2 example number 3.
+Initially based on https://github.com/lundstroem/synth-samples-sdl2 example number 3.  Just a simple implementation, wanted to see how it could work.
 
-Just a simple implementation, wanted to see how it could work.
+Eventually, I wanted more features and grabbed some audio code for filtering, compression, etc. from https://github.com/velipso/sndfilter (Thanks, Sean!)
 
 ## Building
 

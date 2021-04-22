@@ -1,5 +1,8 @@
 #include "app.h"
 #include "audio.h"
+extern "C" {
+#include "sndfilter/compressor.h"
+}
 #include "examples/imgui_impl_opengl3.h"
 #include "examples/imgui_impl_sdl.h"
 #include "imgui.h"
@@ -37,6 +40,7 @@ App::App()
         mSynths[i] = new Synth(SYNTH_AMPLITUDE);
     }
     mAudioBuffer = nullptr;
+    mAudioBuffer2 = nullptr;
     mAudioBufferSize = 0;
     mPanPosition = 0.0f;
 
@@ -649,7 +653,7 @@ void App::audioCallback(Uint8 *byte_stream, int byte_stream_size_in_bytes)
     // zero the buffer
     memset(byte_stream, 0, byte_stream_size_in_bytes);
 
-    // if necessary, create the mAudioBuffer
+    // if necessary, create the mAudioBuffers
     int sizeInSamples = byte_stream_size_in_bytes / 2; // 16bit samples
     if (mAudioBufferSize < sizeInSamples) {
 #ifndef NDEBUG
@@ -661,6 +665,7 @@ void App::audioCallback(Uint8 *byte_stream, int byte_stream_size_in_bytes)
             delete[] mAudioBuffer;
         }
         mAudioBuffer = new float[sizeInSamples];
+        mAudioBuffer2 = new float[sizeInSamples];
     }
     memset(mAudioBuffer, 0, sizeof(float) * sizeInSamples);
 
@@ -674,11 +679,18 @@ void App::audioCallback(Uint8 *byte_stream, int byte_stream_size_in_bytes)
     }
     // pan signal
     pan(mAudioBuffer, mAudioBufferSize, mPanPosition);
-    // FIXME -- eventually need a compressor to keep mAudioBuffer [-1,1]
+    // compressor
+    static bool init_compressor = false;
+    static sf_compressor_state_st cm_state;
+    if(!init_compressor) {
+        sf_defaultcomp(&cm_state, SAMPLE_RATE);
+        init_compressor = true;
+    }
+    sf_compressor_process(&cm_state, sizeInSamples/2, (sf_sample_st *)mAudioBuffer, (sf_sample_st *)mAudioBuffer2);
     if (numActiveSynths > 0) {
         Sint16 *short_stream = (Sint16 *)byte_stream;
         for (int i = 0; i < sizeInSamples; i++) {
-            short_stream[i] = (Sint16)(mAudioBuffer[i] * (float)INT16_MAX);
+            short_stream[i] = (Sint16)(mAudioBuffer2[i] * (float)INT16_MAX);
         }
     }
 }

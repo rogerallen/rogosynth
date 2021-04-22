@@ -38,7 +38,7 @@ class App {
 
     Synth *mSynths[NUM_SYNTHS];
     float mPanPosition;
-    float *mAudioBuffer;
+    float *mAudioBuffer, *mAudioBuffer2;
     int mAudioBufferSize;
 
     bool mSwitchFullscreen;

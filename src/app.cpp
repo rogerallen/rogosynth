@@ -1,5 +1,5 @@
 #include "app.h"
-
+#include "audio.h"
 #include "examples/imgui_impl_opengl3.h"
 #include "examples/imgui_impl_sdl.h"
 #include "imgui.h"
@@ -38,6 +38,7 @@ App::App()
     }
     mAudioBuffer = nullptr;
     mAudioBufferSize = 0;
+    mPanPosition = 0.0f;
 
     mSwitchFullscreen = false;
     mIsFullscreen = false;
@@ -456,8 +457,9 @@ void App::showGUI()
         ImGui::SliderFloat("decay", &decay, 0.0f, 3.0f);
         ImGui::SliderFloat("sustain", &sustain, 0.0f, 1.0f);
         ImGui::SliderFloat("release", &release, 0.0f, 3.0f);
+        ImGui::SliderFloat("pan", &mPanPosition, -1.0f, 1.0f);
         ImGui::Text(pitchString.c_str());
-        //ImGui::Text("Framerate  : %.1f ms or %.1f Hz",
+        // ImGui::Text("Framerate  : %.1f ms or %.1f Hz",
         //            1000.0f / ImGui::GetIO().Framerate,
         //            ImGui::GetIO().Framerate);
         ImGui::End();
@@ -670,6 +672,8 @@ void App::audioCallback(Uint8 *byte_stream, int byte_stream_size_in_bytes)
         // always call addSamples so time & phase are consistent
         mSynths[i]->addSamples(mAudioBuffer, sizeInSamples);
     }
+    // pan signal
+    pan(mAudioBuffer, mAudioBufferSize, mPanPosition);
     // FIXME -- eventually need a compressor to keep mAudioBuffer [-1,1]
     if (numActiveSynths > 0) {
         Sint16 *short_stream = (Sint16 *)byte_stream;

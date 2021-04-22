@@ -37,6 +37,7 @@ class App {
     SDL_AudioDeviceID mAudioDevice;
 
     Synth *mSynths[NUM_SYNTHS];
+    float mPanPosition;
     float *mAudioBuffer;
     int mAudioBufferSize;
 

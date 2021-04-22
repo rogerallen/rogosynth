@@ -61,10 +61,50 @@ static float *generateSawtoothWaveTable()
     return waveTable;
 }
 
+static float *generateSquareWaveTable()
+{
+    float *waveTable = new float[TABLE_LENGTH];
+    memset(waveTable, 0, sizeof(float) * TABLE_LENGTH);
+    float numOctaves = (int)(SAMPLE_RATE / 2.0 / 440.0);
+    for (int octave = 1; octave < numOctaves; octave += 2) {
+        float phaseInc = (octave * 2.0f * (float)M_PI) / (float)TABLE_LENGTH;
+        float phase = 0;
+        for (int i = 0; i < TABLE_LENGTH; i++) {
+            waveTable[i] += (sin(phase) / octave) * (4.0f / (float)M_PI);
+            phase += phaseInc;
+        }
+    }
+#ifndef NDEBUG
+    reportTableMinMax(waveTable, "SQUARE");
+#endif
+    return waveTable;
+}
+static float *generateTriangleWaveTable()
+{
+    float *waveTable = new float[TABLE_LENGTH];
+    memset(waveTable, 0, sizeof(float) * TABLE_LENGTH);
+    float numOctaves = (int)(SAMPLE_RATE / 2.0 / 440.0);
+    for (int octave = 1, i = 0; octave < numOctaves; octave += 2, i++) {
+        float phaseInc = (octave * 2.0f * (float)M_PI) / (float)TABLE_LENGTH;
+        float phase = 0;
+        float sign = (i & 1) ? -1.0f : 1.0f;
+        for (int i = 0; i < TABLE_LENGTH; i++) {
+            waveTable[i] += (sign * sin(phase) / (octave*octave)) * (8.0f / ((float)M_PI*(float)M_PI));
+            phase += phaseInc;
+        }
+    }
+#ifndef NDEBUG
+    reportTableMinMax(waveTable, "TRIANGLE");
+#endif
+    return waveTable;
+}
+
+
+
 float *Synth::cSineWaveTable = generateSineWaveTable();
 float *Synth::cSawtoothWaveTable = generateSawtoothWaveTable();
-float *Synth::cSquareWaveTable = generateSawtoothWaveTable();   // FIXME
-float *Synth::cTriangleWaveTable = generateSawtoothWaveTable(); // FIXME
+float *Synth::cSquareWaveTable = generateSquareWaveTable();
+float *Synth::cTriangleWaveTable = generateTriangleWaveTable();
 
 Synth::Synth(float amp) : mAmplitude(amp)
 {
@@ -113,7 +153,7 @@ void Synth::addSamples(float *samples, long length)
         case SynthType::sawtooth:
             waveSample = Synth::cSawtoothWaveTable[(int)mCurPhase];
             break;
-        case SynthType::square: 
+        case SynthType::square:
             waveSample = Synth::cSquareWaveTable[(int)mCurPhase];
             break;
         case SynthType::triangle:

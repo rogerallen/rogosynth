@@ -1,8 +1,5 @@
 #include "app.h"
 #include "audio.h"
-extern "C" {
-#include "sndfilter/compressor.h"
-}
 #include "examples/imgui_impl_opengl3.h"
 #include "examples/imgui_impl_sdl.h"
 #include "imgui.h"
@@ -39,9 +36,6 @@ App::App() : mLowPassFilter(500.0f, 5.0f)
     for (int i = 0; i < NUM_SYNTHS; i++) {
         mSynths[i] = new Synth(SYNTH_AMPLITUDE);
     }
-    mAudioBuffer = nullptr;
-    mAudioBuffer2 = nullptr;
-    mAudioBufferSize = 0;
     mPanPosition = 0.0f;
 
     mSwitchFullscreen = false;
@@ -63,7 +57,6 @@ App::~App()
     for (int i = 0; i < NUM_SYNTHS; i++) {
         delete mSynths[i];
     }
-    delete[] mAudioBuffer;
 }
 
 void App::run()
@@ -418,6 +411,8 @@ void App::showGUI()
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame(mSDLWindow);
     ImGui::NewFrame();
+
+    // Grab current state
     float amplitude = mSynths[0]->amplitude();
     float attack = mSynths[0]->attack();
     float decay = mSynths[0]->decay();
@@ -447,6 +442,7 @@ void App::showGUI()
     }
     float cutoff = mLowPassFilter.cutoff();
     float resonance = mLowPassFilter.resonance();
+
     if (mShowGUI) {
         ImGui::Begin("Synth", NULL, ImGuiWindowFlags_AlwaysAutoResize);
         ImGui::RadioButton("sine", &typeInt, 0);
@@ -464,7 +460,7 @@ void App::showGUI()
         ImGui::SliderFloat("pan", &mPanPosition, -1.0f, 1.0f);
         ImGui::SliderFloat("LPF cutoff", &cutoff, 20.0f, 2000.0f);
         ImGui::SliderFloat("LPF resonance", &resonance, 0.0f, 100.0f);
-        
+
         ImGui::Text(pitchString.c_str());
         // ImGui::Text("Framerate  : %.1f ms or %.1f Hz",
         //            1000.0f / ImGui::GetIO().Framerate,
@@ -473,6 +469,8 @@ void App::showGUI()
     }
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+    // Update current state after GUI update
     switch (typeInt) {
     case 0:
         type = SynthType::sine;
@@ -655,49 +653,29 @@ int App::symToPitch(SDL_Keycode sym)
 
 void App::audioCallback(Uint8 *byte_stream, int byte_stream_size_in_bytes)
 {
-    // zero the buffer
+    // zero the buffers
     memset(byte_stream, 0, byte_stream_size_in_bytes);
+    assert(AUDIO_BUFFER_SAMPLES * 2 == byte_stream_size_in_bytes);
+    memset(mAudioBuffer, 0, sizeof(float) * AUDIO_BUFFER_SAMPLES);
 
-    // if necessary, create the mAudioBuffers
-    int sizeInSamples = byte_stream_size_in_bytes / 2; // 16bit samples
-    if (mAudioBufferSize < sizeInSamples) {
-#ifndef NDEBUG
-        std::cout << "Create audio blend buffer of " << sizeInSamples
-                  << " samples\n";
-#endif
-        mAudioBufferSize = sizeInSamples;
-        if (mAudioBuffer != nullptr) {
-            delete[] mAudioBuffer;
-        }
-        mAudioBuffer = new float[sizeInSamples];
-        mAudioBuffer2 = new float[sizeInSamples];
-    }
-    memset(mAudioBuffer, 0, sizeof(float) * sizeInSamples);
-
+    // add all active synths together
     int numActiveSynths = 0;
     for (int i = 0; i < NUM_SYNTHS; i++) {
         if (mSynths[i]->active()) {
             numActiveSynths++;
         }
         // always call addSamples so time & phase are consistent
-        mSynths[i]->addSamples(mAudioBuffer, sizeInSamples);
+        mSynths[i]->addSamples(mAudioBuffer, AUDIO_BUFFER_SAMPLES);
     }
-    // pan signal
-    pan(mAudioBuffer, mAudioBufferSize, mPanPosition);
-    // compressor & low pass resonant filter
-    static bool init_sf = false;
-    static sf_compressor_state_st cm_state;
-    if(!init_sf) {
-        sf_defaultcomp(&cm_state, SAMPLE_RATE);
-        init_sf = true;
-    }
-    sf_compressor_process(&cm_state, sizeInSamples/2, (sf_sample_st *)mAudioBuffer, (sf_sample_st *)mAudioBuffer2);
-    // low pass resonant filter
-    mLowPassFilter.updateSamples(mAudioBuffer2, sizeInSamples);
-    if (numActiveSynths > 0) {
-        Sint16 *short_stream = (Sint16 *)byte_stream;
-        for (int i = 0; i < sizeInSamples; i++) {
-            short_stream[i] = (Sint16)(mAudioBuffer2[i] * (float)INT16_MAX);
-        }
+    // pan synths left/right
+    pan(mAudioBuffer, AUDIO_BUFFER_SAMPLES, mPanPosition);
+    // compressor to try to keep synths from cracking
+    mCompressor.updateSamples(mAudioBuffer, AUDIO_BUFFER_SAMPLES);
+    //  low pass resonant filter
+    mLowPassFilter.updateSamples(mAudioBuffer, AUDIO_BUFFER_SAMPLES);
+    // convert to 16-bit samples
+    Sint16 *short_stream = (Sint16 *)byte_stream;
+    for (int i = 0; i < AUDIO_BUFFER_SAMPLES; i++) {
+        short_stream[i] = (Sint16)(mAudioBuffer[i] * (float)INT16_MAX);
     }
 }

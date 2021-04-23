@@ -10,7 +10,6 @@ class LowPassFilter {
     sf_biquad_state_st mState;
     float mCutoff;
     float mResonance;
-    int mTempSamplesLength;
     float mTempSamples[AUDIO_BUFFER_SAMPLES];
 
   public:

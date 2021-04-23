@@ -4,6 +4,7 @@
 
 static float getFrequency(float note)
 {
+    // FIXME redo note indexes to match midi 69 = A4, not 57
     // Calculate pitch from note value.
     // offset note by 57 halfnotes to get correct pitch from the range we have
     // chosen for the notes.
@@ -99,8 +100,6 @@ static float *generateTriangleWaveTable()
     return waveTable;
 }
 
-
-
 float *Synth::cSineWaveTable = generateSineWaveTable();
 float *Synth::cSawtoothWaveTable = generateSawtoothWaveTable();
 float *Synth::cSquareWaveTable = generateSquareWaveTable();
@@ -164,7 +163,7 @@ void Synth::addSamples(float *samples, long length)
         float sample = mAmplitude * envAmp * (float)waveSample; // scale volume.
         samples[i] += sample;                                   // left channel
         samples[i + 1] += sample;                               // right channel
-        mCurTime += TIME_INC;
+        mCurTime += SAMPLE_PERIOD;
         mCurPhase += phase_inc;
         if (mCurPhase >= TABLE_LENGTH) {
             mCurPhase = mCurPhase - TABLE_LENGTH;

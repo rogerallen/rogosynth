@@ -2,9 +2,9 @@
 
 SDL2 audio synthesis.
 
-Initially based on https://github.com/lundstroem/synth-samples-sdl2 example number 3.  Just a simple implementation, wanted to see how it could work.
+Initially based on https://github.com/lundstroem/synth-samples-sdl2 example number 3.  Started with this simple code and evolved it into a polyphonic synth.
 
-Eventually, I wanted more features and grabbed some audio code for filtering, compression, etc. from https://github.com/velipso/sndfilter (Thanks, Sean!)
+I wanted more features and grabbed some audio code for filtering, compression, etc. from https://github.com/velipso/sndfilter (Thanks, Sean!)
 
 ## Building
 
@@ -22,6 +22,7 @@ Got Windows Build working with both:
 - [DONE] basic GUI
 - [DONE] sine, square, triangle & sawtooth waves
 - [DONE] could use stereo pan
-- [WIP] needs a compressor
-- [WIP] could use resonant LPF after synth
+- [DONE] needs a compressor
+- [DONE] could use resonant LPF after synth
 - low freq osc input to offset pitch, amplitude, phase
+- adjust pitch indexes to match midi 

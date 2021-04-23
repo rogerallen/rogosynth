@@ -6,6 +6,7 @@
 
 #include "appGL.h"
 #include "appWindow.h"
+#include "lowpassfilter.h"
 #include "synth.h"
 #include <GL/glew.h>
 #include <SDL.h>
@@ -40,6 +41,7 @@ class App {
     float mPanPosition;
     float *mAudioBuffer, *mAudioBuffer2;
     int mAudioBufferSize;
+    LowPassFilter mLowPassFilter;
 
     bool mSwitchFullscreen;
     bool mIsFullscreen;

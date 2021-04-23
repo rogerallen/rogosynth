@@ -1,7 +1,6 @@
 #include "app.h"
 #include "audio.h"
 extern "C" {
-#include "sndfilter/biquad.h"
 #include "sndfilter/compressor.h"
 }
 #include "examples/imgui_impl_opengl3.h"
@@ -30,7 +29,7 @@ static void staticAudioCallback(void *userdata, Uint8 *byte_stream,
                                                 byte_stream_length);
 }
 
-App::App()
+App::App() : mLowPassFilter(500.0f, 5.0f)
 {
     mAppWindow = nullptr;
     mAppGL = nullptr;
@@ -233,8 +232,6 @@ bool App::initWindow()
     return false;
 }
 
-#define BUFFER_SIZE 4096 // must be power of two
-
 // initialize SDL2 audio
 // return true on error
 bool App::initAudio()
@@ -248,7 +245,7 @@ bool App::initAudio()
     want.freq = SAMPLE_RATE;
     want.format = AUDIO_S16LSB;
     want.channels = 2;
-    want.samples = BUFFER_SIZE;
+    want.samples = AUDIO_BUFFER_STEREO_SAMPLES;
     want.userdata = this;
     want.callback = staticAudioCallback;
 
@@ -448,6 +445,8 @@ void App::showGUI()
         typeInt = 3;
         break;
     }
+    float cutoff = mLowPassFilter.cutoff();
+    float resonance = mLowPassFilter.resonance();
     if (mShowGUI) {
         ImGui::Begin("Synth", NULL, ImGuiWindowFlags_AlwaysAutoResize);
         ImGui::RadioButton("sine", &typeInt, 0);
@@ -463,6 +462,9 @@ void App::showGUI()
         ImGui::SliderFloat("sustain", &sustain, 0.0f, 1.0f);
         ImGui::SliderFloat("release", &release, 0.0f, 3.0f);
         ImGui::SliderFloat("pan", &mPanPosition, -1.0f, 1.0f);
+        ImGui::SliderFloat("LPF cutoff", &cutoff, 20.0f, 2000.0f);
+        ImGui::SliderFloat("LPF resonance", &resonance, 0.0f, 100.0f);
+        
         ImGui::Text(pitchString.c_str());
         // ImGui::Text("Framerate  : %.1f ms or %.1f Hz",
         //            1000.0f / ImGui::GetIO().Framerate,
@@ -493,6 +495,8 @@ void App::showGUI()
         mSynths[i]->release(release);
         mSynths[i]->type(type);
     }
+    mLowPassFilter.cutoff(cutoff);
+    mLowPassFilter.resonance(resonance);
 }
 
 void App::update()
@@ -683,19 +687,17 @@ void App::audioCallback(Uint8 *byte_stream, int byte_stream_size_in_bytes)
     // compressor & low pass resonant filter
     static bool init_sf = false;
     static sf_compressor_state_st cm_state;
-    static sf_biquad_state_st bq_state;
     if(!init_sf) {
         sf_defaultcomp(&cm_state, SAMPLE_RATE);
-        sf_lowpass(&bq_state, SAMPLE_RATE, 500.0f, 5.0f);
         init_sf = true;
     }
     sf_compressor_process(&cm_state, sizeInSamples/2, (sf_sample_st *)mAudioBuffer, (sf_sample_st *)mAudioBuffer2);
     // low pass resonant filter
-    sf_biquad_process(&bq_state, sizeInSamples/2, (sf_sample_st *)mAudioBuffer2, (sf_sample_st *)mAudioBuffer);
+    mLowPassFilter.updateSamples(mAudioBuffer2, sizeInSamples);
     if (numActiveSynths > 0) {
         Sint16 *short_stream = (Sint16 *)byte_stream;
         for (int i = 0; i < sizeInSamples; i++) {
-            short_stream[i] = (Sint16)(mAudioBuffer[i] * (float)INT16_MAX);
+            short_stream[i] = (Sint16)(mAudioBuffer2[i] * (float)INT16_MAX);
         }
     }
 }

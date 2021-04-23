@@ -4,12 +4,9 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <cstdint>
-
+#include "constants.h"
 #include "envelope.h"
 
-const int SAMPLE_RATE = 44100;
-const float TIME_INC = 1.0f / SAMPLE_RATE;
-const float CHROMATIC_BASE = powf(2.0f, 1.0f / 12.0f); // 2^(1/12)
 const int MIN_NOTE = 12;
 const int MAX_NOTE = 131;
 const int TABLE_LENGTH = 1024;

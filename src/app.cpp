@@ -37,6 +37,7 @@ App::App() : mLowPassFilter(500.0f, 5.0f)
         mSynths[i] = new Synth(SYNTH_AMPLITUDE);
     }
     mPanPosition = 0.0f;
+    mReverb = new Reverb(SF_REVERB_PRESET_DEFAULT);
 
     mSwitchFullscreen = false;
     mIsFullscreen = false;
@@ -653,6 +654,7 @@ int App::symToPitch(SDL_Keycode sym)
 
 void App::audioCallback(Uint8 *byte_stream, int byte_stream_size_in_bytes)
 {
+    int t0 = SDL_GetTicks();
     // zero the buffers
     memset(byte_stream, 0, byte_stream_size_in_bytes);
     assert(AUDIO_BUFFER_SAMPLES * 2 == byte_stream_size_in_bytes);
@@ -671,11 +673,19 @@ void App::audioCallback(Uint8 *byte_stream, int byte_stream_size_in_bytes)
     pan(mAudioBuffer, AUDIO_BUFFER_SAMPLES, mPanPosition);
     // compressor to try to keep synths from cracking
     mCompressor.updateSamples(mAudioBuffer, AUDIO_BUFFER_SAMPLES);
-    //  low pass resonant filter
+    // low pass resonant filter
     mLowPassFilter.updateSamples(mAudioBuffer, AUDIO_BUFFER_SAMPLES);
+    // reverb
+    mReverb->updateSamples(mAudioBuffer, AUDIO_BUFFER_SAMPLES);
     // convert to 16-bit samples
     Sint16 *short_stream = (Sint16 *)byte_stream;
     for (int i = 0; i < AUDIO_BUFFER_SAMPLES; i++) {
         short_stream[i] = (Sint16)(mAudioBuffer[i] * (float)INT16_MAX);
     }
+    int t1 = SDL_GetTicks();
+    static int last_t0 = 0;
+    //if(t0 - last_t0 > (int)(1000*((float)AUDIO_BUFFER_STEREO_SAMPLES/SAMPLE_RATE))) {
+    //    std::cout << "dLast = " << t0 - last_t0 << " dThis = " << t1 - t0 << "\n";
+    //}
+    last_t0 = t0;
 }

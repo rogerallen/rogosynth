@@ -8,6 +8,7 @@
 #include "appWindow.h"
 #include "compressor.h"
 #include "lowpassfilter.h"
+#include "reverb.h"
 #include "synth.h"
 #include <GL/glew.h>
 #include <SDL.h>
@@ -43,6 +44,7 @@ class App {
     float mAudioBuffer[AUDIO_BUFFER_SAMPLES];
     Compressor mCompressor;
     LowPassFilter mLowPassFilter;
+    Reverb *mReverb; // Needs to be on the heap, not the stack
 
     bool mSwitchFullscreen;
     bool mIsFullscreen;

@@ -9,7 +9,7 @@
 #include "compressor.h"
 #include "lowpassfilter.h"
 #include "reverb.h"
-#include "synth.h"
+#include "synthvoice.h"
 #include <GL/glew.h>
 #include <SDL.h>
 #include <algorithm>
@@ -39,7 +39,7 @@ class App {
     SDL_AudioSpec mAudioSpec;
     SDL_AudioDeviceID mAudioDevice;
 
-    Synth *mSynths[NUM_SYNTHS];
+    SynthVoice *mSynths[NUM_SYNTHS];
     float mAudioBuffer[AUDIO_BUFFER_SAMPLES];
     float mPanPosition;
     Compressor *mCompressor;

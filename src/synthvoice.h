@@ -1,5 +1,5 @@
-#ifndef ROGOSYNTH_SYNTH_H
-#define ROGOSYNTH_SYNTH_H
+#ifndef ROGOSYNTH_SYNTHVOICE_H
+#define ROGOSYNTH_SYNTHVOICE_H
 
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -11,14 +11,14 @@ const int MIN_NOTE = 12;
 const int MAX_NOTE = 131;
 const int TABLE_LENGTH = 1024;
 
-enum class SynthType { sine, sawtooth, square, triangle };
+enum class WaveType { sine, sawtooth, square, triangle };
 
-class Synth {
+class SynthVoice {
     static float *cSineWaveTable;
     static float *cSawtoothWaveTable;
     static float *cSquareWaveTable;
     static float *cTriangleWaveTable;
-    SynthType mType;
+    WaveType mType;
     float mAmplitude;
     float mCurPhase;
     float mCurTime;
@@ -26,7 +26,7 @@ class Synth {
     Envelope mEnvelope;
 
   public:
-    Synth(float amp);
+    SynthVoice(float amp);
     // main controls
     void noteOn(int pitch);
     void noteOff();
@@ -36,8 +36,8 @@ class Synth {
     float amplitude() { return mAmplitude; }
     void amplitude(float v) { mAmplitude = v; }
     int pitch() { return mPitch; }
-    SynthType type() { return mType; }
-    void type(SynthType v) { mType = v; }
+    WaveType type() { return mType; }
+    void type(WaveType v) { mType = v; }
     void attack(float v) { mEnvelope.attack(v); }
     float attack() { return mEnvelope.attack(); }
     void decay(float v) { mEnvelope.decay(v); }

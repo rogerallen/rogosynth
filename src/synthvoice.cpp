@@ -1,4 +1,4 @@
-#include "synth.h"
+#include "synthvoice.h"
 #include <algorithm>
 #include <iostream>
 
@@ -100,14 +100,14 @@ static float *generateTriangleWaveTable()
     return waveTable;
 }
 
-float *Synth::cSineWaveTable = generateSineWaveTable();
-float *Synth::cSawtoothWaveTable = generateSawtoothWaveTable();
-float *Synth::cSquareWaveTable = generateSquareWaveTable();
-float *Synth::cTriangleWaveTable = generateTriangleWaveTable();
+float *SynthVoice::cSineWaveTable = generateSineWaveTable();
+float *SynthVoice::cSawtoothWaveTable = generateSawtoothWaveTable();
+float *SynthVoice::cSquareWaveTable = generateSquareWaveTable();
+float *SynthVoice::cTriangleWaveTable = generateTriangleWaveTable();
 
-Synth::Synth(float amp) : mAmplitude(amp)
+SynthVoice::SynthVoice(float amp) : mAmplitude(amp)
 {
-    mType = SynthType::sine;
+    mType = WaveType::sawtooth;
     mCurPhase = 0;
     mCurTime = 0.0;
     mPitch = MIN_NOTE;
@@ -117,7 +117,7 @@ Synth::Synth(float amp) : mAmplitude(amp)
     mEnvelope.release(0.2f);
 }
 
-void Synth::noteOn(int pitch)
+void SynthVoice::noteOn(int pitch)
 {
     mPitch = std::clamp(pitch, MIN_NOTE, MAX_NOTE);
     mEnvelope.noteOn(mCurTime);
@@ -126,7 +126,7 @@ void Synth::noteOn(int pitch)
 #endif
 }
 
-void Synth::noteOff()
+void SynthVoice::noteOff()
 {
     mEnvelope.noteOff(mCurTime);
 #ifndef NDEBUG
@@ -135,7 +135,7 @@ void Synth::noteOff()
 }
 
 // add samples to the samples buffer
-void Synth::addSamples(float *samples, long length)
+void SynthVoice::addSamples(float *samples, long length)
 {
     // get correct phase increment for note depending on sample rate and
     // table length.
@@ -146,17 +146,17 @@ void Synth::addSamples(float *samples, long length)
     float waveSample = 0.0f;
     for (int i = 0; i < length; i += 2) {
         switch (mType) {
-        case SynthType::sine:
-            waveSample = Synth::cSineWaveTable[(int)mCurPhase];
+        case WaveType::sine:
+            waveSample = SynthVoice::cSineWaveTable[(int)mCurPhase];
             break;
-        case SynthType::sawtooth:
-            waveSample = Synth::cSawtoothWaveTable[(int)mCurPhase];
+        case WaveType::sawtooth:
+            waveSample = SynthVoice::cSawtoothWaveTable[(int)mCurPhase];
             break;
-        case SynthType::square:
-            waveSample = Synth::cSquareWaveTable[(int)mCurPhase];
+        case WaveType::square:
+            waveSample = SynthVoice::cSquareWaveTable[(int)mCurPhase];
             break;
-        case SynthType::triangle:
-            waveSample = Synth::cTriangleWaveTable[(int)mCurPhase];
+        case WaveType::triangle:
+            waveSample = SynthVoice::cTriangleWaveTable[(int)mCurPhase];
             break;
         }
         float envAmp = mEnvelope.amplitude(mCurTime);

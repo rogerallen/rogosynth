@@ -34,7 +34,7 @@ App::App()
     mSDLGLContext = nullptr;
 
     for (int i = 0; i < NUM_SYNTHS; i++) {
-        mSynths[i] = new Synth(SYNTH_AMPLITUDE);
+        mSynths[i] = new SynthVoice(SYNTH_AMPLITUDE);
     }
     mPanPosition = 0.0f;
     mCompressor = new Compressor();
@@ -427,19 +427,19 @@ void App::showGUI()
             pitchString += std::to_string(mSynths[i]->pitch()) + " ";
         }
     }
-    SynthType type = mSynths[0]->type();
+    WaveType type = mSynths[0]->type();
     int typeInt = 0;
     switch (type) {
-    case SynthType::sine:
+    case WaveType::sine:
         typeInt = 0;
         break;
-    case SynthType::sawtooth:
+    case WaveType::sawtooth:
         typeInt = 1;
         break;
-    case SynthType::square:
+    case WaveType::square:
         typeInt = 2;
         break;
-    case SynthType::triangle:
+    case WaveType::triangle:
         typeInt = 3;
         break;
     }
@@ -454,7 +454,7 @@ void App::showGUI()
         "platelow",    "longreverb1", "longreverb2"};
 
     if (mShowGUI) {
-        ImGui::Begin("Synth", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+        ImGui::Begin("SynthVoice", NULL, ImGuiWindowFlags_AlwaysAutoResize);
         ImGui::RadioButton("sine", &typeInt, 0);
         ImGui::SameLine();
         ImGui::RadioButton("sawtooth", &typeInt, 1);
@@ -483,16 +483,16 @@ void App::showGUI()
     // Update current state after GUI update
     switch (typeInt) {
     case 0:
-        type = SynthType::sine;
+        type = WaveType::sine;
         break;
     case 1:
-        type = SynthType::sawtooth;
+        type = WaveType::sawtooth;
         break;
     case 2:
-        type = SynthType::square;
+        type = WaveType::square;
         break;
     case 3:
-        type = SynthType::triangle;
+        type = WaveType::triangle;
         break;
     }
     for (int i = 0; i < NUM_SYNTHS; i++) {

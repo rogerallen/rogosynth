@@ -3,6 +3,7 @@
 // Project Home: https://github.com/velipso/sndfilter
 
 #include "reverb.h"
+#define _USE_MATH_DEFINES
 #include <math.h>
 #include <stdint.h>
 #include <stdbool.h>

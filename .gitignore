@@ -7,3 +7,5 @@ external/imgui-1.76*
 external/glew-2.1.0*
 external/SDL2-*
 imgui.ini
+CMakeSettings.json
+*.log

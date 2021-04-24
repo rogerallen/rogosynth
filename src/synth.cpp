@@ -143,7 +143,7 @@ void Synth::addSamples(float *samples, long length)
         (getFrequency((float)mPitch) / SAMPLE_RATE) * TABLE_LENGTH;
 
     // loop through the buffer and write samples.
-    float waveSample;
+    float waveSample = 0.0f;
     for (int i = 0; i < length; i += 2) {
         switch (mType) {
         case SynthType::sine:

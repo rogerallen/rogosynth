@@ -26,7 +26,7 @@ static void staticAudioCallback(void *userdata, Uint8 *byte_stream,
                                                 byte_stream_length);
 }
 
-App::App() : mLowPassFilter(500.0f, 5.0f)
+App::App()
 {
     mAppWindow = nullptr;
     mAppGL = nullptr;
@@ -37,6 +37,8 @@ App::App() : mLowPassFilter(500.0f, 5.0f)
         mSynths[i] = new Synth(SYNTH_AMPLITUDE);
     }
     mPanPosition = 0.0f;
+    mCompressor = new Compressor();
+    mLowPassFilter = new LowPassFilter(500.0f, 5.0f);
     mReverb = new Reverb(SF_REVERB_PRESET_DEFAULT);
 
     mSwitchFullscreen = false;
@@ -426,7 +428,7 @@ void App::showGUI()
         }
     }
     SynthType type = mSynths[0]->type();
-    int typeInt;
+    int typeInt = 0;
     switch (type) {
     case SynthType::sine:
         typeInt = 0;
@@ -441,8 +443,8 @@ void App::showGUI()
         typeInt = 3;
         break;
     }
-    float cutoff = mLowPassFilter.cutoff();
-    float resonance = mLowPassFilter.resonance();
+    float cutoff = mLowPassFilter->cutoff();
+    float resonance = mLowPassFilter->resonance();
     int reverbPreset = (int)mReverb->preset();
     static const char *reverbPresetNames[] = {
         "default",     "smallhall1",  "smallhall2",  "mediumhall1",
@@ -501,8 +503,8 @@ void App::showGUI()
         mSynths[i]->release(release);
         mSynths[i]->type(type);
     }
-    mLowPassFilter.cutoff(cutoff);
-    mLowPassFilter.resonance(resonance);
+    mLowPassFilter->cutoff(cutoff);
+    mLowPassFilter->resonance(resonance);
     mReverb->preset((sf_reverb_preset)reverbPreset);
 }
 
@@ -680,9 +682,9 @@ void App::audioCallback(Uint8 *byte_stream, int byte_stream_size_in_bytes)
     // pan synths left/right
     pan(mAudioBuffer, AUDIO_BUFFER_SAMPLES, mPanPosition);
     // compressor to try to keep synths from cracking
-    mCompressor.updateSamples(mAudioBuffer, AUDIO_BUFFER_SAMPLES);
+    mCompressor->updateSamples(mAudioBuffer, AUDIO_BUFFER_SAMPLES);
     // low pass resonant filter
-    mLowPassFilter.updateSamples(mAudioBuffer, AUDIO_BUFFER_SAMPLES);
+    mLowPassFilter->updateSamples(mAudioBuffer, AUDIO_BUFFER_SAMPLES);
     // reverb
     mReverb->updateSamples(mAudioBuffer, AUDIO_BUFFER_SAMPLES);
     // convert to 16-bit samples

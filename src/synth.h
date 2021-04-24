@@ -11,7 +11,7 @@ const int MIN_NOTE = 12;
 const int MAX_NOTE = 131;
 const int TABLE_LENGTH = 1024;
 
-enum SynthType { sine, sawtooth, square, triangle };
+enum class SynthType { sine, sawtooth, square, triangle };
 
 class Synth {
     static float *cSineWaveTable;

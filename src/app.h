@@ -40,10 +40,10 @@ class App {
     SDL_AudioDeviceID mAudioDevice;
 
     Synth *mSynths[NUM_SYNTHS];
-    float mPanPosition;
     float mAudioBuffer[AUDIO_BUFFER_SAMPLES];
-    Compressor mCompressor;
-    LowPassFilter mLowPassFilter;
+    float mPanPosition;
+    Compressor *mCompressor;
+    LowPassFilter *mLowPassFilter;
     Reverb *mReverb; // Needs to be on the heap, not the stack
 
     bool mSwitchFullscreen;

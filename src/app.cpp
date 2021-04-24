@@ -443,6 +443,13 @@ void App::showGUI()
     }
     float cutoff = mLowPassFilter.cutoff();
     float resonance = mLowPassFilter.resonance();
+    int reverbPreset = (int)mReverb->preset();
+    static const char *reverbPresetNames[] = {
+        "default",     "smallhall1",  "smallhall2",  "mediumhall1",
+        "mediumhall2", "largehall1",  "largehall2",  "smallroom1",
+        "smallroom2",  "mediumroom1", "mediumroom2", "largeroom1",
+        "largeroom2",  "mediumer1",   "mediumer2",   "platehigh",
+        "platelow",    "longreverb1", "longreverb2"};
 
     if (mShowGUI) {
         ImGui::Begin("Synth", NULL, ImGuiWindowFlags_AlwaysAutoResize);
@@ -461,7 +468,7 @@ void App::showGUI()
         ImGui::SliderFloat("pan", &mPanPosition, -1.0f, 1.0f);
         ImGui::SliderFloat("LPF cutoff", &cutoff, 20.0f, 2000.0f);
         ImGui::SliderFloat("LPF resonance", &resonance, 0.0f, 100.0f);
-
+        ImGui::Combo("Reverb Preset", &reverbPreset, reverbPresetNames, IM_ARRAYSIZE(reverbPresetNames));
         ImGui::Text(pitchString.c_str());
         // ImGui::Text("Framerate  : %.1f ms or %.1f Hz",
         //            1000.0f / ImGui::GetIO().Framerate,
@@ -496,6 +503,7 @@ void App::showGUI()
     }
     mLowPassFilter.cutoff(cutoff);
     mLowPassFilter.resonance(resonance);
+    mReverb->preset((sf_reverb_preset)reverbPreset);
 }
 
 void App::update()
@@ -684,8 +692,10 @@ void App::audioCallback(Uint8 *byte_stream, int byte_stream_size_in_bytes)
     }
     int t1 = SDL_GetTicks();
     static int last_t0 = 0;
-    //if(t0 - last_t0 > (int)(1000*((float)AUDIO_BUFFER_STEREO_SAMPLES/SAMPLE_RATE))) {
-    //    std::cout << "dLast = " << t0 - last_t0 << " dThis = " << t1 - t0 << "\n";
+    // if(t0 - last_t0 >
+    // (int)(1000*((float)AUDIO_BUFFER_STEREO_SAMPLES/SAMPLE_RATE))) {
+    //    std::cout << "dLast = " << t0 - last_t0 << " dThis = " << t1 - t0 <<
+    //    "\n";
     //}
     last_t0 = t0;
 }

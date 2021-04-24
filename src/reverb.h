@@ -4,6 +4,7 @@
 extern "C" {
 #include "sndfilter/reverb.h"
 }
+#include <assert.h>
 #include <cstring>
 #include <iostream>
 

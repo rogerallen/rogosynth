@@ -4,6 +4,7 @@
 extern "C" {
 #include "sndfilter/biquad.h"
 }
+#include <assert.h>
 #include <cstring>
 
 class LowPassFilter {

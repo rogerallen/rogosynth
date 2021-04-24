@@ -33,13 +33,8 @@ App::App()
     mSDLWindow = nullptr;
     mSDLGLContext = nullptr;
 
-    for (int i = 0; i < NUM_SYNTHS; i++) {
-        mSynths[i] = new SynthVoice(SYNTH_AMPLITUDE);
-    }
-    mPanPosition = 0.0f;
-    mCompressor = new Compressor();
-    mLowPassFilter = new LowPassFilter(500.0f, 5.0f);
-    mReverb = new Reverb(SF_REVERB_PRESET_DEFAULT);
+    mRogoSynth = new RogoSynth();
+    mAudioBuffer = new float[AUDIO_BUFFER_SAMPLES];
 
     mSwitchFullscreen = false;
     mIsFullscreen = false;
@@ -57,9 +52,8 @@ App::App()
 
 App::~App()
 {
-    for (int i = 0; i < NUM_SYNTHS; i++) {
-        delete mSynths[i];
-    }
+    delete mRogoSynth;
+    delete [] mAudioBuffer;
 }
 
 void App::run()
@@ -332,18 +326,18 @@ void App::loop()
                     int pitch = symToPitch(event.key.keysym.sym);
                     if ((pitch > -1) && (event.key.repeat == 0)) {
                         bool foundSynth = false;
-                        for (int i = 0; i < NUM_SYNTHS; i++) {
-                            if (!mSynths[i]->active()) {
+                        for (int i = 0; i < mRogoSynth->numSynths(); i++) {
+                            if (!mRogoSynth->active(i)) {
                                 foundSynth = true;
 #ifndef NDEBUG
                                 std::cout << i << ": ";
 #endif
-                                mSynths[i]->noteOn(pitch);
+                                mRogoSynth->noteOn(i, pitch);
                                 break;
                             }
                         }
                         if (!foundSynth) {
-                            std::cout << "ERROR: NOT ENOUGH POLYPHONY!\n";
+                            std::cout << "ERROR: not enough RogoSynth voices.\n";
                         }
                     }
                     break;
@@ -353,9 +347,9 @@ void App::loop()
                 int pitch = symToPitch(event.key.keysym.sym);
                 if (pitch > -1) {
                     bool foundSynth = false;
-                    for (int i = 0; i < NUM_SYNTHS; i++) {
-                        if (mSynths[i]->pitch() == pitch) {
-                            if (mSynths[i]->releasing()) {
+                    for (int i = 0; i < mRogoSynth->numSynths(); i++) {
+                        if (mRogoSynth->pitch(i) == pitch) {
+                            if (mRogoSynth->releasing(i)) {
                                 std::cout
                                     << "note releasing already. keep looking\n";
                                 continue;
@@ -364,7 +358,7 @@ void App::loop()
 #ifndef NDEBUG
                             std::cout << i << ": ";
 #endif
-                            mSynths[i]->noteOff();
+                            mRogoSynth->noteOff(i);
                             break;
                         }
                     }
@@ -416,18 +410,18 @@ void App::showGUI()
     ImGui::NewFrame();
 
     // Grab current state
-    float amplitude = mSynths[0]->amplitude();
-    float attack = mSynths[0]->attack();
-    float decay = mSynths[0]->decay();
-    float sustain = mSynths[0]->sustain();
-    float release = mSynths[0]->release();
+    float amplitude = mRogoSynth->amplitude();
+    float attack = mRogoSynth->attack();
+    float decay = mRogoSynth->decay();
+    float sustain = mRogoSynth->sustain();
+    float release = mRogoSynth->release();
     std::string pitchString = "pitches: ";
-    for (int i = 0; i < NUM_SYNTHS; i++) {
-        if (mSynths[i]->active()) {
-            pitchString += std::to_string(mSynths[i]->pitch()) + " ";
+    for (int i = 0; i < mRogoSynth->numSynths(); i++) {
+        if (mRogoSynth->active(i)) {
+            pitchString += std::to_string(mRogoSynth->pitch(i)) + " ";
         }
     }
-    WaveType type = mSynths[0]->type();
+    WaveType type = mRogoSynth->type();
     int typeInt = 0;
     switch (type) {
     case WaveType::sine:
@@ -443,9 +437,10 @@ void App::showGUI()
         typeInt = 3;
         break;
     }
-    float cutoff = mLowPassFilter->cutoff();
-    float resonance = mLowPassFilter->resonance();
-    int reverbPreset = (int)mReverb->preset();
+    float panPosition = mRogoSynth->panPosition();
+    float cutoff = mRogoSynth->lpfCutoff();
+    float resonance = mRogoSynth->lpfResonance();
+    int reverbPreset = (int)mRogoSynth->reverbPreset();
     static const char *reverbPresetNames[] = {
         "default",     "smallhall1",  "smallhall2",  "mediumhall1",
         "mediumhall2", "largehall1",  "largehall2",  "smallroom1",
@@ -467,7 +462,7 @@ void App::showGUI()
         ImGui::SliderFloat("decay", &decay, 0.0f, 3.0f);
         ImGui::SliderFloat("sustain", &sustain, 0.0f, 1.0f);
         ImGui::SliderFloat("release", &release, 0.0f, 3.0f);
-        ImGui::SliderFloat("pan", &mPanPosition, -1.0f, 1.0f);
+        ImGui::SliderFloat("pan", &panPosition, -1.0f, 1.0f);
         ImGui::SliderFloat("LPF cutoff", &cutoff, 20.0f, 2000.0f);
         ImGui::SliderFloat("LPF resonance", &resonance, 0.0f, 100.0f);
         ImGui::Combo("Reverb Preset", &reverbPreset, reverbPresetNames, IM_ARRAYSIZE(reverbPresetNames));
@@ -495,17 +490,16 @@ void App::showGUI()
         type = WaveType::triangle;
         break;
     }
-    for (int i = 0; i < NUM_SYNTHS; i++) {
-        mSynths[i]->amplitude(amplitude);
-        mSynths[i]->attack(attack);
-        mSynths[i]->decay(decay);
-        mSynths[i]->sustain(sustain);
-        mSynths[i]->release(release);
-        mSynths[i]->type(type);
-    }
-    mLowPassFilter->cutoff(cutoff);
-    mLowPassFilter->resonance(resonance);
-    mReverb->preset((sf_reverb_preset)reverbPreset);
+    mRogoSynth->amplitude(amplitude);
+    mRogoSynth->attack(attack);
+    mRogoSynth->decay(decay);
+    mRogoSynth->sustain(sustain);
+    mRogoSynth->release(release);
+    mRogoSynth->type(type);
+    mRogoSynth->panPosition(panPosition);
+    mRogoSynth->lpfCutoff(cutoff);
+    mRogoSynth->lpfResonance(resonance);
+    mRogoSynth->reverbPreset((sf_reverb_preset)reverbPreset);
 }
 
 void App::update()
@@ -664,29 +658,14 @@ int App::symToPitch(SDL_Keycode sym)
 
 void App::audioCallback(Uint8 *byte_stream, int byte_stream_size_in_bytes)
 {
+    assert(AUDIO_BUFFER_SAMPLES * 2 == byte_stream_size_in_bytes);
     int t0 = SDL_GetTicks();
     // zero the buffers
-    memset(byte_stream, 0, byte_stream_size_in_bytes);
-    assert(AUDIO_BUFFER_SAMPLES * 2 == byte_stream_size_in_bytes);
+    //memset(byte_stream, 0, byte_stream_size_in_bytes);
     memset(mAudioBuffer, 0, sizeof(float) * AUDIO_BUFFER_SAMPLES);
 
-    // add all active synths together
-    int numActiveSynths = 0;
-    for (int i = 0; i < NUM_SYNTHS; i++) {
-        if (mSynths[i]->active()) {
-            numActiveSynths++;
-        }
-        // always call addSamples so time & phase are consistent
-        mSynths[i]->addSamples(mAudioBuffer, AUDIO_BUFFER_SAMPLES);
-    }
-    // pan synths left/right
-    pan(mAudioBuffer, AUDIO_BUFFER_SAMPLES, mPanPosition);
-    // compressor to try to keep synths from cracking
-    mCompressor->updateSamples(mAudioBuffer, AUDIO_BUFFER_SAMPLES);
-    // low pass resonant filter
-    mLowPassFilter->updateSamples(mAudioBuffer, AUDIO_BUFFER_SAMPLES);
-    // reverb
-    mReverb->updateSamples(mAudioBuffer, AUDIO_BUFFER_SAMPLES);
+    mRogoSynth->updateSamples(mAudioBuffer, AUDIO_BUFFER_SAMPLES);
+
     // convert to 16-bit samples
     Sint16 *short_stream = (Sint16 *)byte_stream;
     for (int i = 0; i < AUDIO_BUFFER_SAMPLES; i++) {

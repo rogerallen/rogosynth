@@ -6,18 +6,13 @@
 
 #include "appGL.h"
 #include "appWindow.h"
-#include "compressor.h"
-#include "lowpassfilter.h"
-#include "reverb.h"
-#include "synthvoice.h"
+#include "rogosynth.h"
+
 #include <GL/glew.h>
 #include <SDL.h>
 #include <algorithm>
 #include <iostream>
 #include <string>
-
-const int NUM_SYNTHS = 8;
-const float SYNTH_AMPLITUDE = 1.0f/NUM_SYNTHS;
 
 class App {
 
@@ -39,12 +34,8 @@ class App {
     SDL_AudioSpec mAudioSpec;
     SDL_AudioDeviceID mAudioDevice;
 
-    SynthVoice *mSynths[NUM_SYNTHS];
-    float mAudioBuffer[AUDIO_BUFFER_SAMPLES];
-    float mPanPosition;
-    Compressor *mCompressor;
-    LowPassFilter *mLowPassFilter;
-    Reverb *mReverb; // Needs to be on the heap, not the stack
+    RogoSynth *mRogoSynth;
+    float *mAudioBuffer;
 
     bool mSwitchFullscreen;
     bool mIsFullscreen;

@@ -4,6 +4,7 @@
 extern "C" {
 #include "sndfilter/compressor.h"
 }
+#include <assert.h>
 #include <cstring>
 class Compressor {
     sf_compressor_state_st mState;

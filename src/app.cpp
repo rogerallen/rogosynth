@@ -350,8 +350,8 @@ void App::loop()
                     for (int i = 0; i < mRogoSynth->numSynths(); i++) {
                         if (mRogoSynth->pitch(i) == pitch) {
                             if (mRogoSynth->releasing(i)) {
-                                std::cout
-                                    << "note releasing already. keep looking\n";
+                                //std::cout
+                                //    << "note releasing already. keep looking\n";
                                 continue;
                             }
                             foundSynth = true;
@@ -449,7 +449,7 @@ void App::showGUI()
         "platelow",    "longreverb1", "longreverb2"};
 
     if (mShowGUI) {
-        ImGui::Begin("SynthVoice", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+        ImGui::Begin("RogoSynth", NULL, ImGuiWindowFlags_AlwaysAutoResize);
         ImGui::RadioButton("sine", &typeInt, 0);
         ImGui::SameLine();
         ImGui::RadioButton("sawtooth", &typeInt, 1);

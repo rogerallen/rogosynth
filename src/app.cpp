@@ -672,9 +672,15 @@ int App::symToPitch(SDL_Keycode sym)
 
 void App::audioCallback(Uint8 *byte_stream, int byte_stream_size_in_bytes)
 {
+    static int last_t0 = -1;
+    static int last_t1 = -1;
     MTR_BEGIN("audio", "callback");
     assert(AUDIO_BUFFER_SAMPLES * 2 == byte_stream_size_in_bytes);
     int t0 = SDL_GetTicks();
+    int dt0 = (last_t0 > 0) ? t0 - last_t0 : 0;
+    int dt1 = (last_t0 > 0) ? t0 - last_t1 : 0;
+    MTR_COUNTER("audio", "dt0", dt0);
+    MTR_COUNTER("audio", "dt1", dt1);
     // zero the buffers
     //memset(byte_stream, 0, byte_stream_size_in_bytes);
     memset(mAudioBuffer, 0, sizeof(float) * AUDIO_BUFFER_SAMPLES);
@@ -687,12 +693,12 @@ void App::audioCallback(Uint8 *byte_stream, int byte_stream_size_in_bytes)
         short_stream[i] = (Sint16)(mAudioBuffer[i] * (float)INT16_MAX);
     }
     int t1 = SDL_GetTicks();
-    static int last_t0 = 0;
     // if(t0 - last_t0 >
     // (int)(1000*((float)AUDIO_BUFFER_STEREO_SAMPLES/SAMPLE_RATE))) {
     //    std::cout << "dLast = " << t0 - last_t0 << " dThis = " << t1 - t0 <<
     //    "\n";
     //}
     last_t0 = t0;
+    last_t1 = t1;
     MTR_END("audio", "callback");
 }

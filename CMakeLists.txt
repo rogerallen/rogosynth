@@ -21,11 +21,24 @@ project(rogosynth
 set(IMGUI_SOURCES ${IMGUI_ROOT}/imgui.cpp ${IMGUI_ROOT}/imgui_draw.cpp ${IMGUI_ROOT}/imgui_widgets.cpp)
 set(IMGUI_IMPL_SOURCES ${IMGUI_ROOT}/examples/imgui_impl_sdl.cpp ${IMGUI_ROOT}/examples/imgui_impl_opengl3.cpp)
 
-add_executable(rogosynth src/main.cpp src/app.cpp src/appGL.cpp 
+set(ROGOSYNTH_SOURCES src/main.cpp src/app.cpp src/appGL.cpp 
     src/rogosynth.cpp src/synthvoice.cpp 
     src/audio.c
     src/sndfilter/biquad.c src/sndfilter/compressor.c src/sndfilter/reverb.c
     ${IMGUI_SOURCES} ${IMGUI_IMPL_SOURCES})
+
+# If you want Minitrace to output timeline/profiling json, set to 1
+set(USE_MINITRACE 0)
+
+if(USE_MINITRACE)
+  set(ROGOSYNTH_SOURCES ${ROGOSYNTH_SOURCES} src/minitrace/minitrace.c )
+endif()
+
+add_executable(rogosynth ${ROGOSYNTH_SOURCES})
+
+if(USE_MINITRACE)
+  target_compile_definitions(rogosynth PUBLIC MTR_ENABLED)
+endif()
 
 target_include_directories(rogosynth PUBLIC "${IMGUI_ROOT}")
 target_include_directories(rogosynth PUBLIC "${IMGUI_ROOT}/examples")

@@ -9,3 +9,4 @@ external/SDL2-*
 imgui.ini
 CMakeSettings.json
 *.log
+trace.json

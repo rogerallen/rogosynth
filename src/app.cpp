@@ -4,6 +4,15 @@
 #include "examples/imgui_impl_sdl.h"
 #include "imgui.h"
 
+#ifdef MTR_ENABLED
+#include "minitrace/minitrace.h"
+#else
+#define mtr_init(X) {}
+#define mtr_shutdown() {}
+#define MTR_BEGIN(X,Y) {}
+#define MTR_END(X,Y) {}
+#endif
+
 #ifdef WIN32
 // don't interfere with std::min,max
 #define NOMINMAX
@@ -28,6 +37,8 @@ static void staticAudioCallback(void *userdata, Uint8 *byte_stream,
 
 App::App()
 {
+    mtr_init("trace.json");
+
     mAppWindow = nullptr;
     mAppGL = nullptr;
     mSDLWindow = nullptr;
@@ -52,6 +63,8 @@ App::App()
 
 App::~App()
 {
+    mtr_shutdown();
+
     delete mRogoSynth;
     delete [] mAudioBuffer;
 }
@@ -290,6 +303,7 @@ void App::loop()
     const Uint32 debounceTime = 100; // 100ms
 
     while (running) {
+        MTR_BEGIN("main", "runloop");
         Uint32 curTime = SDL_GetTicks();
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
@@ -399,6 +413,7 @@ void App::loop()
         showGUI();
 
         SDL_GL_SwapWindow(mSDLWindow);
+        MTR_END("main", "runloop");
     }
 }
 
@@ -658,6 +673,7 @@ int App::symToPitch(SDL_Keycode sym)
 
 void App::audioCallback(Uint8 *byte_stream, int byte_stream_size_in_bytes)
 {
+    MTR_BEGIN("audio", "callback");
     assert(AUDIO_BUFFER_SAMPLES * 2 == byte_stream_size_in_bytes);
     int t0 = SDL_GetTicks();
     // zero the buffers
@@ -679,4 +695,5 @@ void App::audioCallback(Uint8 *byte_stream, int byte_stream_size_in_bytes)
     //    "\n";
     //}
     last_t0 = t0;
+    MTR_END("audio", "callback");
 }

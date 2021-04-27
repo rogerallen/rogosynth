@@ -1,6 +1,7 @@
 #include "synthvoice.h"
 #include <algorithm>
 #include <iostream>
+#include <cstring>
 
 static float getFrequency(float note)
 {

@@ -10,3 +10,4 @@ imgui.ini
 CMakeSettings.json
 *.log
 trace.json
+*.o
